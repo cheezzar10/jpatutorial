@@ -2,9 +2,17 @@ package com.parallels.pa.rnd.jpa;
 
 import javax.persistence.*;
 
-@Embeddable
+@Entity
+@IdClass(EnginePropertyId.class)
+@Table(name = "engine_property")
 public class EngineProperty {
-	@Column(length = 32)
+	@Id
+	@ManyToOne
+	@JoinColumn(name = "eng_id")
+	private Engine engine;
+
+	@Id
+	@Column(length = 32, nullable = false)
 	private String name;
 
 	@Column(length = 128)
@@ -13,17 +21,18 @@ public class EngineProperty {
 	public EngineProperty() {
 	}
 
-	public EngineProperty(String name, String value) {
+	public EngineProperty(Engine engine, String name, String value) {
+		this.engine = engine;
 		this.name = name;
 		this.value = value;
 	}
 
-	public String getName() {
-		return name;
+	public Engine getEngine() {
+		return engine;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public String getName() {
+		return name;
 	}
 
 	public String getValue() {

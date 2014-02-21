@@ -16,8 +16,7 @@ public class Engine {
 	@Column(length = 64)
 	private String model;
 
-	@ElementCollection
-	@CollectionTable(name = "engine_property")
+	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "engine")
 	private List<EngineProperty> properties;
 
 	public Engine() {

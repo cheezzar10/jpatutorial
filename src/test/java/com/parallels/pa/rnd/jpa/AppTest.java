@@ -196,8 +196,8 @@ public class AppTest
       Engine engine = new Engine("BMW", "N54");
 
       List<EngineProperty> properties = new LinkedList<>();
-      properties.add(new EngineProperty("type", "four stroke bi-turbo"));
-      properties.add(new EngineProperty("engine block", "aluminium with cast iron liners"));
+      properties.add(new EngineProperty(engine, "type", "four stroke bi-turbo"));
+      properties.add(new EngineProperty(engine, "engine block", "aluminium with cast iron liners"));
       engine.setProperties(properties);
 
       em.persist(engine);
@@ -215,22 +215,22 @@ public class AppTest
       tx.begin();
 
       CriteriaBuilder cb = em.getCriteriaBuilder();
-      CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+      CriteriaQuery<EngineProperty> cq = cb.createQuery(EngineProperty.class);
       Root<Engine> engine = cq.from(Engine.class);
       Join<Engine, EngineProperty> properties = engine.join("properties");
-      cq.multiselect(engine.get("model"), properties.get("name"), properties.get("value"));
+      cq.select(properties);
       Predicate p = cb.conjunction();
       p = cb.and(p, cb.equal(engine.get("id"), cb.parameter(Integer.class, "engineId")));
       p = cb.and(p, properties.get("name").in(new String[] { "engine block", "type" }));
       cq.where(p);
 
       // TypedQuery<Engine> query = em.createQuery("select e from Engine e join fetch e.properties ep where e.id = :engineId and ep.name in ('engine block')", Engine.class);
-      TypedQuery<Object[]> query = em.createQuery(cq);
+      TypedQuery<EngineProperty> query = em.createQuery(cq);
       query.setParameter("engineId", engineId);
-      List<Object[]> result = query.getResultList();
+      List<EngineProperty> result = query.getResultList();
 
       assertEquals("Incorrect number of rows", 2, result.size());
-      assertEquals("Incorrect model", "N54", (String)result.get(1)[0]);
+      assertEquals("Incorrect model", "N54", ((EngineProperty)result.get(0)).getEngine().getModel());
 
       tx.commit();
       em.close();
@@ -247,7 +247,7 @@ public class AppTest
       CriteriaQuery<EngineProperty> cq = cb.createQuery(EngineProperty.class);
       Root<Engine> engine = cq.from(Engine.class);
       Join<Engine, EngineProperty> properties = engine.join("properties");
-      cq.multiselect(properties.get("name"), properties.get("value"));
+      cq.select(properties);
       Predicate p = cb.conjunction();
       p = cb.and(p, cb.equal(engine.get("maker"), cb.parameter(String.class, "maker")));
       p = cb.and(p, cb.equal(engine.get("model"), cb.parameter(String.class, "model")));
