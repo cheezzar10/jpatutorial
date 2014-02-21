@@ -21,10 +21,9 @@ public class EngineProperty {
 	public EngineProperty() {
 	}
 
-	public EngineProperty(Engine engine, String name, String value) {
+	public EngineProperty(Engine engine, String name) {
 		this.engine = engine;
 		this.name = name;
-		this.value = value;
 	}
 
 	public Engine getEngine() {

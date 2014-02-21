@@ -52,7 +52,12 @@ public class Engine {
 		return properties;
 	}
 
-	public void setProperties(List<EngineProperty> properties) {
-		this.properties = properties;
+	public void addProperty(String name, String value) {
+		if (properties == null) {
+			properties = new LinkedList<>();
+		}
+		EngineProperty engineProp = new EngineProperty(this, name);
+		engineProp.setValue(value);
+		properties.add(engineProp);
 	}
 }

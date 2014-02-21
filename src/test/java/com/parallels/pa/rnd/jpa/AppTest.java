@@ -194,11 +194,8 @@ public class AppTest
       tx.begin();
 
       Engine engine = new Engine("BMW", "N54");
-
-      List<EngineProperty> properties = new LinkedList<>();
-      properties.add(new EngineProperty(engine, "type", "four stroke bi-turbo"));
-      properties.add(new EngineProperty(engine, "engine block", "aluminium with cast iron liners"));
-      engine.setProperties(properties);
+      engine.addProperty("type", "four stroke bi-turbo");
+      engine.addProperty("engine block", "aluminium with cast iron liners");
 
       em.persist(engine);
 

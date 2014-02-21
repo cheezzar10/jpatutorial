@@ -7,23 +7,6 @@ public class EnginePropertyId implements Serializable {
 	private Integer engine;
 	private String name;
 
-	public EnginePropertyId() {
-
-	}
-
-	public EnginePropertyId(Integer engineId, String name) {
-		engine = engineId;
-		this.name = name;
-	}
-
-	public Integer getEngine() {
-		return engine;
-	}
-
-	public String getName() {
-		return name;
-	}
-
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
