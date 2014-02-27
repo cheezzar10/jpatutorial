@@ -213,17 +213,15 @@ public class AppTest
 
       CriteriaBuilder cb = em.getCriteriaBuilder();
       CriteriaQuery<EngineProperty> cq = cb.createQuery(EngineProperty.class);
-      Root<Engine> engine = cq.from(Engine.class);
-      Join<Engine, EngineProperty> properties = engine.join("properties");
-      cq.select(properties);
+      Root<EngineProperty> engineProp = cq.from(EngineProperty.class);
+      engineProp.fetch("engine");
+      cq.select(engineProp);
       Predicate p = cb.conjunction();
-      p = cb.and(p, cb.equal(engine.get("id"), cb.parameter(Integer.class, "engineId")));
-      p = cb.and(p, properties.get("name").in(new String[] { "engine block", "type" }));
+      p = cb.and(p, engineProp.get("engine").get("id").in(new Integer[] { engineId }));
+      p = cb.and(p, engineProp.get("name").in(new String[] { "engine block", "type" }));
       cq.where(p);
 
-      // TypedQuery<Engine> query = em.createQuery("select e from Engine e join fetch e.properties ep where e.id = :engineId and ep.name in ('engine block')", Engine.class);
       TypedQuery<EngineProperty> query = em.createQuery(cq);
-      query.setParameter("engineId", engineId);
       List<EngineProperty> result = query.getResultList();
 
       assertEquals("Incorrect number of rows", 2, result.size());
