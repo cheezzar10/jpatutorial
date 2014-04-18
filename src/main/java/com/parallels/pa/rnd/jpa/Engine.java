@@ -19,6 +19,10 @@ public class Engine {
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "engine")
 	private List<EngineProperty> properties;
 
+	@Column(length = 1, nullable = false)
+	@org.hibernate.annotations.Type(type = "yes_no")
+	private boolean diesel;
+
 	public Engine() {
 
 	}
@@ -59,5 +63,13 @@ public class Engine {
 		EngineProperty engineProp = new EngineProperty(this, name);
 		engineProp.setValue(value);
 		properties.add(engineProp);
+	}
+
+	public boolean isDiesel() {
+		return diesel;
+	}
+
+	public void setDiesel(boolean diesel) {
+		this.diesel = diesel;
 	}
 }

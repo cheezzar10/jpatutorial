@@ -66,6 +66,75 @@ public class AppTest
     testRemoveEngine();
     testCarArchival();
    }
+
+   @Test
+   public void testFindCarsWithEngines() {
+    EntityManager em = emf.createEntityManager();
+    EntityTransaction tx = em.getTransaction();
+    tx.begin();
+
+    Integer[] carIds = { createCarWithEngine(em, "BMW", "530d", "BMW", "N57D30O1"), createCarWithEngine(em, "BMW", "535d", "BMW", "N57D30T1") };
+    System.out.printf("car ids: %s%n", Arrays.toString(carIds));
+
+    tx.commit();
+    em.close();
+
+    testLoadCars(carIds);
+    testFindCarsWithEngine();
+
+    System.out.println("test cars with engines test completed");
+   }
+
+   private void testFindCarsWithEngine() {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      TypedQuery<Car> query = em.createQuery("select c from Car c where c.engine.id = (select e.id from Engine e where e.maker = :maker and e.model = :model)", Car.class);
+      query.setParameter("maker", "BM");
+      query.setParameter("model", "N57D30O1");
+      query.getResultList();
+
+      tx.commit();
+      em.close();
+   }
+
+   private void testLoadCars(Integer[] carIds) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      System.out.println("test cars with engines test completed");
+
+      // select c.engine.id from Car c where c.id = :carId
+      CriteriaBuilder cb = em.getCriteriaBuilder();
+      CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+      Root<Car> car = cq.from(Car.class);
+      Join<Car,Engine> engine = car.join("engine");
+      // cq.select(car.<Engine>get("engine").<Integer>get("id"));
+      cq.multiselect(car, engine.get("id"));
+      cq.where(car.get("id").in(carIds));
+      TypedQuery<Object[]> query = em.createQuery(cq);
+
+      List<Object[]> carsAndEngineIds = query.getResultList();
+
+      assertEquals("incorrect amount of used engines", carIds.length, carsAndEngineIds.size());
+      for (Object[] carAndEngineId : carsAndEngineIds) {
+        System.out.printf("engine id: %d%n", carAndEngineId[1]);
+        // ((Car)carAndEngineId[0]).getModel();
+      }
+    
+      tx.commit();
+      em.close();      
+   }
+
+   private Integer createCarWithEngine(EntityManager em, String carMaker, String carModel, String engineMaker, String engineModel) {
+    Car car = new Car(carMaker, carModel);
+    Engine engine = new Engine(engineMaker, engineModel);
+    car.setEngine(engine);
+    em.persist(car);
+    return car.getId();
+   }
    
    @Test
    public void testFindCars() {
@@ -105,7 +174,8 @@ public class AppTest
       tx.begin();
     
       Car car = new Car("BMW", "335i");
-      Engine engine = new Engine("BMW", "N57");
+      Engine engine = new Engine("BMW", "N55");
+      engine.setDiesel(true);
       car.setEngine(engine);
       em.persist(car);
       System.out.printf("Car id: %s%n", car.getId());
@@ -140,7 +210,7 @@ public class AppTest
       em.close();
    }
 
-   public void testRemoveEngine() {
+   private void testRemoveEngine() {
       EntityManager em = emf.createEntityManager();
       EntityTransaction tx = em.getTransaction();
 
@@ -174,7 +244,7 @@ public class AppTest
       em.close();  
    }
 
-   public void testCarArchival() {
+   private void testCarArchival() {
      EntityManager em = emf.createEntityManager();
       EntityTransaction tx = em.getTransaction();
       tx.begin();
@@ -199,6 +269,11 @@ public class AppTest
 
       em.persist(engine);
 
+      for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator();enginePropsIter.hasNext();) {
+          EngineProperty engineProp = enginePropsIter.next();
+          enginePropsIter.remove();
+      }
+
       tx.commit();
       em.close();
 
@@ -206,7 +281,7 @@ public class AppTest
       testGetEnginePropertyUsingCriteriaAPI();
    }
 
-   public void testGetEnginePropertyUsingQuery(Integer engineId) {
+   private void testGetEnginePropertyUsingQuery(Integer engineId) {
       EntityManager em = emf.createEntityManager();
       EntityTransaction tx = em.getTransaction();
       tx.begin();
@@ -231,7 +306,7 @@ public class AppTest
       em.close();
    }
 
-   public void testGetEnginePropertyUsingCriteriaAPI() {
+   private void testGetEnginePropertyUsingCriteriaAPI() {
       EntityManager em = emf.createEntityManager();
       EntityTransaction tx = em.getTransaction();
       tx.begin();

@@ -26,6 +26,11 @@ public class EngineProperty {
 		this.name = name;
 	}
 
+	public EngineProperty(String name, String value) {
+		this.name = name;
+		this.value = value;
+	}
+
 	public Engine getEngine() {
 		return engine;
 	}
