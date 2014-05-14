@@ -335,4 +335,41 @@ public class AppTest
       tx.commit();
       em.close();
    }
+
+   @Test
+   public void testCreateOwnerWithCars() {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      Owner owner = new Owner("Billy", "Bones");
+      Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30"), createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0") };
+
+      for (Integer carId : carIds) {
+        owner.getCars().add(em.find(Car.class, carId));
+      }
+
+      em.persist(owner);
+
+      Integer carId = createCarWithEngine(em, "BMW", "1M Coupe", "BMW", "N54B30TO");
+
+      tx.commit();
+      em.close();
+
+      testLoadOwner(owner.getId(), carId);
+   }
+
+   private void testLoadOwner(Integer ownerId, Integer carId) {
+      EntityManager em = emf.createEntityManager();
+      // EntityTransaction tx = em.getTransaction();
+      // tx.begin();
+
+      Owner owner = em.find(Owner.class, ownerId);
+      Car car = em.find(Car.class, carId);
+
+      owner.getCars().add(car);
+
+      // tx.commit();
+      em.close();
+   }
 }

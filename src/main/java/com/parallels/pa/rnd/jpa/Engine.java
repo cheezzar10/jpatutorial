@@ -20,7 +20,7 @@ public class Engine {
 	private List<EngineProperty> properties;
 
 	@Column(length = 1, nullable = false)
-	@org.hibernate.annotations.Type(type = "yes_no")
+	// @org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
 
 	public Engine() {
