@@ -345,21 +345,32 @@ public class AppTest
       Owner owner = new Owner("Billy", "Bones");
       Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30"), createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0") };
 
+      owner.setId(7);
+
       for (Integer carId : carIds) {
-        owner.getCars().add(em.find(Car.class, carId));
+        Car car = em.find(Car.class, carId);
+        car.setOwner(owner);
       }
 
       em.persist(owner);
 
       Integer carId = createCarWithEngine(em, "BMW", "1M Coupe", "BMW", "N54B30TO");
 
+      em.flush();
+
+      Car car = em.find(Car.class, carIds[1]);
+
+      removeOwner(em, owner);
+      tryToUseCarWithRemovedOwner(em, car);
+
       tx.commit();
       em.close();
 
-      testLoadOwner(owner.getId(), carId);
+      // testLoadOwner(owner.getId(), carId);
+      // tryToLoadCarAndAccessEngine(carId);
    }
 
-   private void testLoadOwner(Integer ownerId, Integer carId) {
+   private void testLoadOwner(int ownerId, Integer carId) {
       EntityManager em = emf.createEntityManager();
       // EntityTransaction tx = em.getTransaction();
       // tx.begin();
@@ -371,5 +382,55 @@ public class AppTest
 
       // tx.commit();
       em.close();
+   }
+
+   private void tryToLoadCarAndAccessEngine(Integer carId) {
+     EntityManager em = emf.createEntityManager();
+
+     System.out.println("loading car engine id");
+
+     TypedQuery<Object[]> query = em.createQuery("select c.id, c.engine.id from Car c where c.id = :carId", Object[].class);
+     query.setParameter("carId", carId);
+     Object[] result = query.getSingleResult();
+
+     em.close();
+
+     // Engine engine = car.getEngine();
+     // Integer engineId = engine.getId();
+
+     System.out.println("car engine id loading completed");
+   }
+
+   private void removeOwner(EntityManager em, Owner owner) {
+      // EntityManager em = emf.createEntityManager();
+      // EntityTransaction tx = em.getTransaction();
+      // tx.begin();
+
+      Query query = em.createNativeQuery("alter table car drop constraint car_owner_fk");
+      query.executeUpdate();
+
+      Owner loadedOwner = em.find(Owner.class, owner.getId());
+      em.remove(loadedOwner);
+
+      // tx.commit();
+      // em.close();
+   }
+
+   private void tryToUseCarWithRemovedOwner(EntityManager em, Car car) {
+      // EntityManager em = emf.createEntityManager();
+      // EntityTransaction tx = em.getTransaction();
+      // tx.begin();
+
+      TypedQuery<Car> query = em.createQuery("select c from Car c where c.id = :id", Car.class);
+      query.setParameter("id", car.getId());
+      Car loadedCar = query.getSingleResult();
+
+      assertSame(loadedCar, car);
+      loadedCar.setModel("i8");
+        
+      // tx.commit();
+      // em.close();
+
+      assertEquals("i8", car.getModel());
    }
 }

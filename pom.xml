@@ -20,6 +20,12 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+        		<artifactId>maven-surefire-plugin</artifactId>
+        		<configuration>
+          			<parallel>classes</parallel>
+        		</configuration>
+      		</plugin>
 		</plugins>
 	</build>
 

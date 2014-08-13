@@ -7,8 +7,8 @@ import javax.persistence.*;
 @Table(name = "owner")
 public class Owner {
 	@Id
-	@GeneratedValue
-	private Integer id;
+	// @GeneratedValue
+	private int id;
 
 	@Column(name = "first_name")
 	private String firstName;
@@ -16,8 +16,7 @@ public class Owner {
 	@Column(name = "last_name")
 	private String lastName;
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner_id")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
 	private Set<Car> cars = new HashSet<>();
 
 	public Owner() {
@@ -29,8 +28,12 @@ public class Owner {
 		this.lastName = lastName;
 	}
 
-	public Integer getId() {
+	public int getId() {
 		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public String getFirstName() {

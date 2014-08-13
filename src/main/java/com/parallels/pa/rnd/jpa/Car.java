@@ -2,6 +2,7 @@ package com.parallels.pa.rnd.jpa;
 
 import java.util.*;
 import javax.persistence.*;
+import org.hibernate.annotations.ForeignKey;
 
 @Entity
 @Table(name = "car", uniqueConstraints = @UniqueConstraint(columnNames = {"maker", "model"}))
@@ -28,6 +29,11 @@ public class Car {
 
 	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, optional = false)
 	private Engine engine;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "owner_id")
+	@ForeignKey(name = "car_owner_fk")
+	private Owner owner;
 	
 	public Car() {
 		
@@ -81,5 +87,13 @@ public class Car {
 
 	public void setEngine(Engine engine) {
 		this.engine = engine;
+	}
+
+	public Owner getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Owner owner) {
+		this.owner = owner;
 	}
 }
