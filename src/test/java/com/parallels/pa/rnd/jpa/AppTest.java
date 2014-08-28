@@ -345,8 +345,6 @@ public class AppTest
       Owner owner = new Owner("Billy", "Bones");
       Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30"), createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0") };
 
-      owner.setId(7);
-
       for (Integer carId : carIds) {
         Car car = em.find(Car.class, carId);
         car.setOwner(owner);
@@ -360,27 +358,30 @@ public class AppTest
 
       Car car = em.find(Car.class, carIds[1]);
 
-      removeOwner(em, owner);
-      tryToUseCarWithRemovedOwner(em, car);
-
       tx.commit();
       em.close();
 
-      // testLoadOwner(owner.getId(), carId);
-      // tryToLoadCarAndAccessEngine(carId);
+      tryToLoadOwner(owner.getId(), carId);
+      tryToLoadCarAndAccessEngine(carId);
+      tryToRemoveCarsOwnerBy(owner, carIds[0]);
    }
 
-   private void testLoadOwner(int ownerId, Integer carId) {
+   private void tryToLoadOwner(Integer ownerId, Integer carId) {
       EntityManager em = emf.createEntityManager();
-      // EntityTransaction tx = em.getTransaction();
-      // tx.begin();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
 
-      Owner owner = em.find(Owner.class, ownerId);
+      TypedQuery<Owner> query = em.createQuery("from Owner o where o.id = :id", Owner.class);
+      query.setParameter("id", ownerId);
+      // query.setHint("org.hibernate.readOnly", Boolean.TRUE.toString());
+      Owner owner = query.getSingleResult();
+
       Car car = em.find(Car.class, carId);
 
+      car.setOwner(owner);
       owner.getCars().add(car);
 
-      // tx.commit();
+      tx.commit();
       em.close();
    }
 
@@ -401,36 +402,68 @@ public class AppTest
      System.out.println("car engine id loading completed");
    }
 
-   private void removeOwner(EntityManager em, Owner owner) {
-      // EntityManager em = emf.createEntityManager();
-      // EntityTransaction tx = em.getTransaction();
-      // tx.begin();
+   private void tryToRemoveCarsOwnerBy(Owner owner, Integer carId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
 
-      Query query = em.createNativeQuery("alter table car drop constraint car_owner_fk");
+      Query query = em.createQuery("delete Car c where c.owner = :owner");
+      query.setParameter("owner", owner);
       query.executeUpdate();
 
-      Owner loadedOwner = em.find(Owner.class, owner.getId());
-      em.remove(loadedOwner);
+      Car car = em.find(Car.class, carId);
+      assertNull(car);
 
-      // tx.commit();
-      // em.close();
+      tx.commit();
+      em.close();
    }
 
-   private void tryToUseCarWithRemovedOwner(EntityManager em, Car car) {
-      // EntityManager em = emf.createEntityManager();
-      // EntityTransaction tx = em.getTransaction();
-      // tx.begin();
+   @Test
+   public void testCreateOwnerWithGarages() {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
 
-      TypedQuery<Car> query = em.createQuery("select c from Car c where c.id = :id", Car.class);
-      query.setParameter("id", car.getId());
-      Car loadedCar = query.getSingleResult();
+      Owner owner = new Owner("Blind", "Pew");
+      Garage garage = new Garage("Treasure Island", 1);
+      owner.getGarages().add(garage);
 
-      assertSame(loadedCar, car);
-      loadedCar.setModel("i8");
-        
-      // tx.commit();
-      // em.close();
+      em.persist(owner);
+      em.persist(garage);
 
-      assertEquals("i8", car.getModel());
+      tx.commit();
+      em.close();
+
+      tryToAddGarageToOwner(owner.getId());
+   }
+
+   public void tryToAddGarageToOwner(Integer ownerId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      TypedQuery<Owner> query = em.createQuery("from Owner o where o.id = :id", Owner.class);
+      query.setParameter("id", ownerId);
+      query.setHint("org.hibernate.readOnly", "true");
+      Owner owner = query.getSingleResult();
+
+      owner.setFirstName("sailor");
+      em.flush();
+      // em.detach(owner);
+
+      Garage garage = new Garage("Carribean Sea", 2);
+
+      owner.setGarages(new HashSet<>(Arrays.asList( garage )));
+      em.persist(garage);
+
+      garage = new Garage("Pacific Ocean", 3);
+      owner.getGarages().add(garage);
+      em.persist(garage);
+
+      owner = em.find(Owner.class, ownerId);
+      owner.getGarages().add(garage);
+
+      tx.commit();
+      em.close();          
    }
 }

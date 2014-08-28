@@ -7,17 +7,21 @@ import javax.persistence.*;
 @Table(name = "owner")
 public class Owner {
 	@Id
-	// @GeneratedValue
-	private int id;
+	@GeneratedValue
+	private Integer id;
 
-	@Column(name = "first_name")
+	@Column(name = "first_name", length = 32)
 	private String firstName;
 
-	@Column(name = "last_name")
+	@Column(name = "last_name", length = 32)
 	private String lastName;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
 	private Set<Car> cars = new HashSet<>();
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "owner_id")
+	private Set<Garage> garages = new HashSet<>();
 
 	public Owner() {
 
@@ -28,12 +32,8 @@ public class Owner {
 		this.lastName = lastName;
 	}
 
-	public int getId() {
+	public Integer getId() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String getFirstName() {
@@ -54,5 +54,13 @@ public class Owner {
 
 	public Set<Car> getCars() {
 		return cars;
+	}
+
+	public Set<Garage> getGarages() {
+		return garages;
+	}
+
+	public void setGarages(Set<Garage> garages) {
+		this.garages = garages;
 	}
 }
