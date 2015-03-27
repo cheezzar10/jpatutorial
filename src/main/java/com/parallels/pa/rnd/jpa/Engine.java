@@ -16,11 +16,11 @@ public class Engine {
 	@Column(length = 64)
 	private String model;
 
-	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "engine")
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "engine")
 	private List<EngineProperty> properties;
 
 	@Column(length = 1, nullable = false)
-	// @org.hibernate.annotations.Type(type = "yes_no")
+	@org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
 
 	public Engine() {

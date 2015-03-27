@@ -1,7 +1,6 @@
 package com.parallels.pa.rnd.jpa;
 
 import java.io.*;
-import javax.persistence.*;
 
 public class EnginePropertyId implements Serializable {
 	private Integer engine;

@@ -5,6 +5,8 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import org.junit.*;
 import org.hibernate.exception.*;
+import org.hibernate.Session;
+import org.hibernate.SQLQuery;
 import java.sql.*;
 
 import static org.junit.Assert.*;
@@ -65,6 +67,7 @@ public class AppTest
 
     testRemoveEngine();
     testCarArchival();
+    testLoadCars(new Integer[] { car.getId() });
    }
 
    @Test
@@ -90,7 +93,8 @@ public class AppTest
       EntityTransaction tx = em.getTransaction();
       tx.begin();
 
-      TypedQuery<Car> query = em.createQuery("select c from Car c where c.engine.id = (select e.id from Engine e where e.maker = :maker and e.model = :model)", Car.class);
+      TypedQuery<Car> query = em.createQuery("select c from Car c where c.engine.id = (" + 
+            " select e.id from Engine e where e.maker = :maker and e.model = :model and e.diesel = true)", Car.class);
       query.setParameter("maker", "BM");
       query.setParameter("model", "N57D30O1");
       query.getResultList();
@@ -103,6 +107,13 @@ public class AppTest
       EntityManager em = emf.createEntityManager();
       EntityTransaction tx = em.getTransaction();
       tx.begin();
+
+      Cache cache = em.getEntityManagerFactory().getCache();
+      if (cache.contains(Car.class, carIds[0])) {
+        System.out.printf("Car#%d is cached.%n", carIds[0]);
+      } else {
+        System.out.printf("Car#%d is not cached.%n", carIds[0]);
+      }
 
       System.out.println("test cars with engines test completed");
 
@@ -120,6 +131,8 @@ public class AppTest
 
       assertEquals("incorrect amount of used engines", carIds.length, carsAndEngineIds.size());
       for (Object[] carAndEngineId : carsAndEngineIds) {
+        System.out.println("persisting already persisted car");
+        em.persist(carAndEngineId[0]);
         System.out.printf("engine id: %d%n", carAndEngineId[1]);
         // ((Car)carAndEngineId[0]).getModel();
       }
@@ -222,8 +235,12 @@ public class AppTest
       Engine engine = query.getSingleResult();
 
       try {
+        System.out.printf("removing engine #%d%n", engine.getId());
         // check constraints
         em.remove(engine);
+
+        assertFalse(em.contains(engine));
+
         em.flush();
         tx.commit();
       } catch (PersistenceException pEx) {
@@ -249,8 +266,11 @@ public class AppTest
       EntityTransaction tx = em.getTransaction();
       tx.begin();
 
-      Query query = em.createNativeQuery("insert into removed_car select id, maker from car where id = ?");
-      query.setParameter(1, 1);
+      Session session = (Session)em.getDelegate();
+      SQLQuery query = session.createSQLQuery("insert into removed_car select id, maker from car where id = ?");
+      // query.addSynchronizedQuerySpace("sql");
+      // Query query = em.createNativeQuery("insert into removed_car select id, maker from car where id = ?");
+      query.setParameter(0, 1);
       query.executeUpdate();
 
       tx.commit();
@@ -271,14 +291,45 @@ public class AppTest
 
       for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator();enginePropsIter.hasNext();) {
           EngineProperty engineProp = enginePropsIter.next();
+          EnginePropertyChangeRec changeRec = new EnginePropertyChangeRec(engineProp);
+          em.persist(changeRec);
           enginePropsIter.remove();
       }
 
       tx.commit();
       em.close();
 
+      testGetEnginePropertiesChangeRecs(engine.getId());
       testGetEnginePropertyUsingQuery(engine.getId());
       testGetEnginePropertyUsingCriteriaAPI();
+      //testRemoveEngineWithFilteredProperties(engine.getId());
+   }
+
+   private void testGetEnginePropertiesChangeRecs(Integer engineId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      TypedQuery<EnginePropertyChangeRec> query = em.createQuery(
+        "select epcr from EnginePropertyChangeRec epcr join epcr.property ep join ep.engine e where e.id = :engineId", 
+        EnginePropertyChangeRec.class);
+      query.setParameter("engineId", engineId);
+      List<EnginePropertyChangeRec> recs = query.getResultList();
+
+      EnginePropertyChangeRecId firstRecId = null;
+      for (EnginePropertyChangeRec rec : recs) {
+        EntityManagerFactory emFactory = em.getEntityManagerFactory();
+        PersistenceUnitUtil pu = emFactory.getPersistenceUnitUtil();
+        // firstRecId = (EnginePropertyChangeRecId)pu.getIdentifier(rec);
+        break;
+      }
+
+      // em.find(EnginePropertyChangeRec.class, firstRecId);
+
+      assertEquals(2, recs.size());
+
+      tx.commit();
+      em.close();
    }
 
    private void testGetEnginePropertyUsingQuery(Integer engineId) {
@@ -331,6 +382,37 @@ public class AppTest
       List<EngineProperty> result = query.getResultList();
       assertEquals("Incorrect number of properties", 1, result.size());
       assertEquals("Incorrect property value", "aluminium with cast iron liners", result.get(0).getValue());
+
+      tx.commit();
+      em.close();
+   }
+
+   private void testRemoveEngineWithFilteredProperties(Integer engineId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      Engine engine = em.find(Engine.class, engineId);
+      System.out.printf("engine %s loaded%n", engine);
+      List<EngineProperty> engineProps = engine.getProperties();
+      for (Iterator<EngineProperty> enginePropsIter = engineProps.iterator();enginePropsIter.hasNext();) {
+        EngineProperty prop = enginePropsIter.next();
+        if (prop.getName().equals("type")) {
+          System.out.println("property 'type' removed");
+          enginePropsIter.remove();
+        }
+      }
+
+      System.out.printf("removing engine with id: %d%n", engineId);
+      if (em.contains(engine)) {
+        System.out.printf("engine %s already loaded%n", engine);
+        em.detach(engine);
+        engine = em.find(Engine.class, engineId);
+        System.out.printf("engine %s reloaded%n", engine);
+      }
+
+      em.remove(engine);
+      em.flush();
 
       tx.commit();
       em.close();

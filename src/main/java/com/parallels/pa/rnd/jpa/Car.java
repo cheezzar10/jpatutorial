@@ -3,9 +3,12 @@ package com.parallels.pa.rnd.jpa;
 import java.util.*;
 import javax.persistence.*;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
 @Table(name = "car", uniqueConstraints = @UniqueConstraint(columnNames = {"maker", "model"}))
+@Cacheable
+@org.hibernate.annotations.Cache(region = "jpa", usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Car {
 	@Id
 	@GeneratedValue
