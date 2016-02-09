@@ -1,0 +1,19 @@
+1. creating database and user
+
+# psql -U postgres -h `hostname`
+
+2. creating new user
+
+posgres=# create user cardb with createdb password '1q2w3e';
+
+3. connecting to template database using just created user
+
+postgres=# \c template1 cardb
+
+4. creating database
+
+postgres=# create database cardb;
+
+5. creating special table for removed cars archival
+
+postgres=# create table removed_car (id integer, maker varchar(32));

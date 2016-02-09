@@ -9,6 +9,19 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Table(name = "car", uniqueConstraints = @UniqueConstraint(columnNames = {"maker", "model"}))
 @Cacheable
 @org.hibernate.annotations.Cache(region = "jpa", usage = CacheConcurrencyStrategy.READ_WRITE)
+// override field results ( result set contains two feilds id - one should be named as car_id, another as owner_id )
+@SqlResultSetMapping(name = "Car.carAndOwner", entities = { 
+	@EntityResult(entityClass = com.parallels.pa.rnd.jpa.Car.class, fields = {
+		@FieldResult(name = "id", column = "car_id"),
+		@FieldResult(name = "maker", column = "maker"),
+		@FieldResult(name = "model", column = "model"),
+		@FieldResult(name = "engine", column = "engine_id"),
+		@FieldResult(name = "owner", column = "car_owner_id")
+	}),
+	@EntityResult(entityClass = com.parallels.pa.rnd.jpa.Owner.class, fields = {
+		@FieldResult(name = "id", column = "owner_id")
+	}) 
+})
 public class Car {
 	@Id
 	@GeneratedValue
@@ -31,6 +44,7 @@ public class Car {
 	private ProductionStatistics productionStats;
 
 	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "engine_id")
 	private Engine engine;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -81,7 +95,9 @@ public class Car {
 
 	public void setProductionStats(ProductionStatistics productionStats) {
 		this.productionStats = productionStats;
-		productionStats.setCar(this);
+		if (productionStats != null) {
+			productionStats.setCar(this);
+		}
 	}
 
 	public Engine getEngine() {

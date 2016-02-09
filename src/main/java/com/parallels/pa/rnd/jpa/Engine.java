@@ -15,6 +15,8 @@ public class Engine {
 
 	@Column(length = 64)
 	private String model;
+	
+	private int power;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "engine")
 	private List<EngineProperty> properties;
@@ -27,9 +29,10 @@ public class Engine {
 
 	}
 
-	public Engine(String maker, String model) {
+	public Engine(String maker, String model, int power) {
 		this.maker = maker;
 		this.model = model;
+		this.power = power;
 	}
 
 	public Integer getId() {
@@ -50,6 +53,14 @@ public class Engine {
 	
 	public void setModel(String model) {
 		this.model = model;
+	}
+	
+	public int getPower() {
+		return power;
+	}
+	
+	public void setPower(int power) {
+		this.power = power;
 	}
 
 	public List<EngineProperty> getProperties() {

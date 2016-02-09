@@ -37,7 +37,7 @@ public class AppTest
     options.put("rims style", "double spoke");
     car.setOptions(options);
 
-    Engine engine = new Engine("BMW", "N47");
+    Engine engine = new Engine("BMW", "N47", 184);
     car.setEngine(engine);
 
 		em.persist(car);
@@ -68,6 +68,8 @@ public class AppTest
     testRemoveEngine();
     testCarArchival();
     testLoadCars(new Integer[] { car.getId() });
+    testLoadCarUsingNativeQuery(car.getId());
+	testAdHocNativeQueries();
    }
 
    @Test
@@ -76,16 +78,56 @@ public class AppTest
     EntityTransaction tx = em.getTransaction();
     tx.begin();
 
-    Integer[] carIds = { createCarWithEngine(em, "BMW", "530d", "BMW", "N57D30O1"), createCarWithEngine(em, "BMW", "535d", "BMW", "N57D30T1") };
+    Integer[] carIds = { createCarWithEngine(em, "BMW", "530d", "BMW", "N57D30O1", 258), createCarWithEngine(em, "BMW", "535d", "BMW", "N57D30T1", 313) };
     System.out.printf("car ids: %s%n", Arrays.toString(carIds));
+
+    Car car = em.find(Car.class, carIds[1]);
+
+    // sharing engine between cars
+    Car newCar = new Car("BMW", "335d");
+    newCar.setEngine(car.getEngine());
+    em.persist(newCar);
 
     tx.commit();
     em.close();
 
     testLoadCars(carIds);
     testFindCarsWithEngine();
+	testFindEnginesWithPowerInRange(220, 350);
+    testFindCarsWithUniqueEngine(carIds[1]);
+    testCountEngineMakersQuery();
 
     System.out.println("test cars with engines test completed");
+   }
+
+   private void testCountEngineMakersQuery() {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      TypedQuery<Object[]> query = em.createQuery("select e.maker, count(e.maker) from Engine e group by e.maker", Object[].class);
+      List<Object[]> stats = query.getResultList();
+      for (Object[] makerStat : stats) {
+        assertEquals("BMW", makerStat[0]);
+        assertTrue(((Long)makerStat[1]) > 0);
+      }
+
+      tx.commit();
+      em.close();
+   }
+
+   private void testFindCarsWithUniqueEngine(Integer carId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      TypedQuery<Car> query = em.createQuery("select c from Car c where c.id = :carId and not exists (select ic from Car ic where ic.id <> :carId and ic.engine = c.engine)", Car.class);
+      query.setParameter("carId", carId);
+      List<Car> cars = query.getResultList();
+      assertTrue(cars.isEmpty());
+
+      tx.commit();
+      em.close();
    }
 
    private void testFindCarsWithEngine() {
@@ -101,6 +143,26 @@ public class AppTest
 
       tx.commit();
       em.close();
+   }
+   
+   private void testFindEnginesWithPowerInRange(int powerMin, int powerMax) {
+	   System.out.printf("searching for engines with power in range %d-%d%n", powerMin, powerMax);
+	   
+       EntityManager em = emf.createEntityManager();
+       EntityTransaction tx = em.getTransaction();
+       tx.begin();
+
+       TypedQuery<Engine> query = em.createQuery("select e from Engine e where e.power between :powerMin and :powerMax and e.diesel = true " +
+		   		" or e.power between :powerMin and :powerMax and e.diesel = false", Engine.class);
+	   
+	   query.setParameter("powerMin", powerMin);
+	   query.setParameter("powerMax", powerMax);
+       
+       List<Engine> engines = query.getResultList();
+	   System.out.printf("%d engines found%n", engines.size());
+
+       tx.commit();
+       em.close();
    }
 
    private void testLoadCars(Integer[] carIds) {
@@ -141,9 +203,48 @@ public class AppTest
       em.close();      
    }
 
-   private Integer createCarWithEngine(EntityManager em, String carMaker, String carModel, String engineMaker, String engineModel) {
+   private void testLoadCarUsingNativeQuery(Integer carId) {
+      EntityManager em = emf.createEntityManager();
+      EntityTransaction tx = em.getTransaction();
+      tx.begin();
+
+      Query query = em.createNativeQuery(
+        "select c.id as car_id, c.maker, c.model, c.engine_id, c.owner_id as car_owner_id, o.id as owner_id, o.first_name, o.last_name from car c left join owner o on o.id = c.owner_id where c.id = :carId", 
+        "Car.carAndOwner");
+      query.setParameter("carId", carId);
+      Object[] result = (Object[])query.getSingleResult();
+      Car car = (Car)result[0];
+      Owner owner = (Owner)result[1];
+
+      assertEquals(carId, car.getId());
+      assertEquals("320d", car.getModel());
+      car.setModel("321d");
+      assertNull(owner);
+
+      tx.commit();
+      em.close();
+   }
+   
+   private void testAdHocNativeQueries() {
+       EntityManager em = emf.createEntityManager();
+       EntityTransaction tx = em.getTransaction();
+       tx.begin();
+	   
+	   Query query = em.createNativeQuery("select id as car_id from car");
+	   
+	   @SuppressWarnings("unchecked")
+	   List<Integer> result = (List<Integer>)query.getResultList();
+	   for (Integer row : result) {
+		   Integer col = row;
+	   }
+	   
+       tx.commit();
+       em.close();
+   }
+
+   private Integer createCarWithEngine(EntityManager em, String carMaker, String carModel, String engineMaker, String engineModel, int power) {
     Car car = new Car(carMaker, carModel);
-    Engine engine = new Engine(engineMaker, engineModel);
+    Engine engine = new Engine(engineMaker, engineModel, power);
     car.setEngine(engine);
     em.persist(car);
     return car.getId();
@@ -187,7 +288,7 @@ public class AppTest
       tx.begin();
     
       Car car = new Car("BMW", "335i");
-      Engine engine = new Engine("BMW", "N55");
+      Engine engine = new Engine("BMW", "N55", 306);
       engine.setDiesel(true);
       car.setEngine(engine);
       em.persist(car);
@@ -218,9 +319,37 @@ public class AppTest
       for (ProductionStatistics loadedProdStats : prodStatsQuery.getResultList()) {
           System.out.printf("Units made: %d car: %d%n", loadedProdStats.getUnitsMade(), loadedProdStats.getId());
       }
+	  
+	  // car.setProductionStats(null);
+	  em.remove(prodStats);
+	  
+	  // em.persist(prodStats);
+	  
+	  Plant plant = new Plant();
+	  plant.setId(1);
+	  plant.setName("Leipzig");
+	  em.persist(plant);
 
       tx.commit();
       em.close();
+	  
+	  // Cache cache = emf.getCache();
+	  // cache.evictAll();
+	  
+	  tryingToPersistDetachedPlant(emf, plant);
+   }
+   
+   private void tryingToPersistDetachedPlant(EntityManagerFactory emf, Plant plant) {
+	   EntityManager em = emf.createEntityManager();
+       EntityTransaction tx = em.getTransaction();
+	   tx.begin();
+	   
+	   // fixing id to persist detached entity one more time
+	   plant.setId(2);
+	   em.persist(plant);
+	   
+       tx.commit();
+       em.close();
    }
 
    private void testRemoveEngine() {
@@ -267,6 +396,10 @@ public class AppTest
       tx.begin();
 
       Session session = (Session)em.getDelegate();
+	  
+	  // required for H2 database only
+	  // session.createSQLQuery("create table removed_car (id integer, maker varchar(32))").executeUpdate();
+	  
       SQLQuery query = session.createSQLQuery("insert into removed_car select id, maker from car where id = ?");
       // query.addSynchronizedQuerySpace("sql");
       // Query query = em.createNativeQuery("insert into removed_car select id, maker from car where id = ?");
@@ -283,7 +416,7 @@ public class AppTest
       EntityTransaction tx = em.getTransaction();
       tx.begin();
 
-      Engine engine = new Engine("BMW", "N54");
+      Engine engine = new Engine("BMW", "N54", 302);
       engine.addProperty("type", "four stroke bi-turbo");
       engine.addProperty("engine block", "aluminium with cast iron liners");
 
@@ -302,7 +435,31 @@ public class AppTest
       testGetEnginePropertiesChangeRecs(engine.getId());
       testGetEnginePropertyUsingQuery(engine.getId());
       testGetEnginePropertyUsingCriteriaAPI();
+	  testGetEnginePropertyByEngineAndName(engine.getId(), "type");
+	  
       //testRemoveEngineWithFilteredProperties(engine.getId());
+   }
+   
+   private void testGetEnginePropertyByEngineAndName(Integer engineId, String name) {
+       EntityManager em = emf.createEntityManager();
+       EntityTransaction tx = em.getTransaction();
+       tx.begin();
+	   
+	   Engine engine = em.find(Engine.class, engineId);
+	   Engine engineProxy = em.getReference(Engine.class, engineId);
+	   
+	   System.out.printf("engine proxy class: %s%n", engineProxy.getClass());
+	   
+	   System.out.printf("loading engine #%d property %s%n", engineId, name);
+	   
+	   TypedQuery<EngineProperty> query = em.createQuery("select ep from EngineProperty ep where ep.engine = :engine and ep.name = :name", EngineProperty.class);
+	   query.setParameter("engine", engine);
+	   query.setParameter("name", name);
+	   
+	   EngineProperty engineProp = query.getSingleResult();
+	   
+       tx.commit();
+       em.close();
    }
 
    private void testGetEnginePropertiesChangeRecs(Integer engineId) {
@@ -425,7 +582,7 @@ public class AppTest
       tx.begin();
 
       Owner owner = new Owner("Billy", "Bones");
-      Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30"), createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0") };
+      Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30", 421), createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0", 560) };
 
       for (Integer carId : carIds) {
         Car car = em.find(Car.class, carId);
@@ -434,7 +591,7 @@ public class AppTest
 
       em.persist(owner);
 
-      Integer carId = createCarWithEngine(em, "BMW", "1M Coupe", "BMW", "N54B30TO");
+      Integer carId = createCarWithEngine(em, "BMW", "1M Coupe", "BMW", "N54B30TO", 340);
 
       em.flush();
 
@@ -453,10 +610,18 @@ public class AppTest
       EntityTransaction tx = em.getTransaction();
       tx.begin();
 
-      TypedQuery<Owner> query = em.createQuery("from Owner o where o.id = :id", Owner.class);
+      TypedQuery<Owner> query = em.createQuery("select o from Owner o join o.cars c where o.id = :id", Owner.class);
       query.setParameter("id", ownerId);
       // query.setHint("org.hibernate.readOnly", Boolean.TRUE.toString());
       Owner owner = query.getSingleResult();
+	  
+	  int rowsCount = 0;
+	  for (Owner row : query.getResultList()) {
+		  assertEquals(2, row.getCars().size());
+		  rowsCount++;
+	  }
+	  assertEquals(2, rowsCount);
+	  assertEquals(1, new LinkedHashSet<>(query.getResultList()).size());
 
       Car car = em.find(Car.class, carId);
 
@@ -489,11 +654,17 @@ public class AppTest
       EntityTransaction tx = em.getTransaction();
       tx.begin();
 
+      Car car = em.find(Car.class, carId);
+
       Query query = em.createQuery("delete Car c where c.owner = :owner");
       query.setParameter("owner", owner);
       query.executeUpdate();
+	  
+	  em.clear();
 
-      Car car = em.find(Car.class, carId);
+      assertFalse(em.contains(car));
+
+      car = em.find(Car.class, carId, LockModeType.PESSIMISTIC_WRITE);
       assertNull(car);
 
       tx.commit();

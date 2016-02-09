@@ -9,8 +9,8 @@
 		<properties>
 			<!-- JDBC connection properties -->
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/plesk"/>
-			<property name="javax.persistence.jdbc.user" value="plesk"/>
+			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.227/cardb"/>
+			<property name="javax.persistence.jdbc.user" value="cardb"/>
 			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
 			
 			<!-- Hibernate JPA provider properties -->
