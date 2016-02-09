@@ -490,7 +490,7 @@ public class AppTest {
 		query.setParameter("engineId", engineId);
 		
 		Engine engine = query.getSingleResult();
-		em.detach(engine);
+		// em.detach(engine);
 		for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator(); enginePropsIter.hasNext();) {
 			EngineProperty prop = enginePropsIter.next();
 			if (prop.getName().equals("type")) {
@@ -499,6 +499,7 @@ public class AppTest {
 		}
 		assertEquals(1, engine.getProperties().size());
 		// em.clear();
+		em.refresh(engine);
 		assertEquals(2, query.getSingleResult().getProperties().size());
 		
 		tx.commit();
