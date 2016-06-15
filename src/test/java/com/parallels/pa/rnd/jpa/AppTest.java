@@ -53,12 +53,11 @@ public class AppTest {
 		emf.close();
 	}
 	
-	private java.sql.Blob generateRandomBytes(EntityManager em, int size) {
+	private byte[] generateRandomBytes(EntityManager em, int size) {
 		Random rand = new Random();
 		byte[] bytes = new byte[size];
 		rand.nextBytes(bytes);
-		LobCreator lobCreator = Hibernate.getLobCreator((Session)em.getDelegate());
-		return lobCreator.createBlob(bytes);
+		return bytes;
 	}
 
 	@Test
@@ -75,9 +74,10 @@ public class AppTest {
 
 		Engine engine = new Engine("BMW", "N47", 184);
 		car.setEngine(engine);
-		engine.setDynoGraph(generateRandomBytes(em, 1024 * 16));
-
 		em.persist(car);
+		
+		engine.setDynoGraph(generateRandomBytes(em, 1024 * 16));
+		
 		System.out.printf("Car id: %d%n", car.getId());
 
 		String[] opts = { "interiour trim" };
@@ -295,9 +295,9 @@ public class AppTest {
 			String engineModel, int power) {
 		Car car = new Car(carMaker, carModel);
 		Engine engine = new Engine(engineMaker, engineModel, power);
-		engine.setDynoGraph(generateRandomBytes(em, 32 * 1024));
 		car.setEngine(engine);
 		em.persist(car);
+		engine.setDynoGraph(generateRandomBytes(em, 32 * 1024));
 		return car.getId();
 	}
 
@@ -343,6 +343,7 @@ public class AppTest {
 		engine.setDiesel(true);
 		car.setEngine(engine);
 		em.persist(car);
+		engine.setDynoGraph(generateRandomBytes(em, 8 * 1024));
 		System.out.printf("Car id: %s%n", car.getId());
 
 		ProductionStatistics prodStats = new ProductionStatistics(1000);
@@ -487,10 +488,9 @@ public class AppTest {
 		engine.addProperty("weight", "195 kg");
 		engine.addProperty("low powerband", "1500");
 		engine.addProperty("high powerband", "4500");
-		
-		engine.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
 
 		em.persist(engine);
+		engine.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
 
 		for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator(); enginePropsIter.hasNext();) {
 			EngineProperty engineProp = enginePropsIter.next();

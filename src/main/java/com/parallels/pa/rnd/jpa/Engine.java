@@ -25,8 +25,9 @@ public class Engine {
 	@org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
 	
-	@Column(name = "dyno_graph")
-	private java.sql.Blob dynoGraph;
+	@PrimaryKeyJoinColumn
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private EngineDynoGraph dynoGraph;
 
 	public Engine() {
 
@@ -87,11 +88,14 @@ public class Engine {
 		this.diesel = diesel;
 	}
 	
-	public java.sql.Blob getDynoGraph() {
-		return dynoGraph;
+	public byte[] getDynoGraph() {
+		return dynoGraph.getDynoGraph();
 	}
 	
-	public void setDynoGraph(java.sql.Blob dynoGraph) {
-		this.dynoGraph = dynoGraph;
+	public void setDynoGraph(byte[] dynoGraph) {
+		if (this.dynoGraph == null) {
+			this.dynoGraph = new EngineDynoGraph(this);
+		}
+		this.dynoGraph.setDynoGraph(dynoGraph);
 	}
 }
