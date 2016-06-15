@@ -11,12 +11,16 @@ public class EngineDynoGraph {
 	@Column(name = "dyno_graph")
 	private byte[] dynoGraph;
 	
+	@MapsId
+	@OneToOne
+	private Engine engine;
+	
 	public EngineDynoGraph() {
 		
 	}
 	
 	public EngineDynoGraph(Engine engine) {
-		this.id = engine.getId();
+		this.engine = engine;
 	}
 	
 	public Integer getId() {

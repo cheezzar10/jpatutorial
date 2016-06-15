@@ -25,8 +25,7 @@ public class Engine {
 	@org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
 	
-	@PrimaryKeyJoinColumn
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false, mappedBy = "engine")
 	private EngineDynoGraph dynoGraph;
 
 	public Engine() {

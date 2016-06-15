@@ -74,9 +74,8 @@ public class AppTest {
 
 		Engine engine = new Engine("BMW", "N47", 184);
 		car.setEngine(engine);
-		em.persist(car);
-		
 		engine.setDynoGraph(generateRandomBytes(em, 1024 * 16));
+		em.persist(car);
 		
 		System.out.printf("Car id: %d%n", car.getId());
 
@@ -296,8 +295,8 @@ public class AppTest {
 		Car car = new Car(carMaker, carModel);
 		Engine engine = new Engine(engineMaker, engineModel, power);
 		car.setEngine(engine);
-		em.persist(car);
 		engine.setDynoGraph(generateRandomBytes(em, 32 * 1024));
+		em.persist(car);
 		return car.getId();
 	}
 
@@ -342,8 +341,8 @@ public class AppTest {
 		Engine engine = new Engine("BMW", "N55", 306);
 		engine.setDiesel(true);
 		car.setEngine(engine);
-		em.persist(car);
 		engine.setDynoGraph(generateRandomBytes(em, 8 * 1024));
+		em.persist(car);
 		System.out.printf("Car id: %s%n", car.getId());
 
 		ProductionStatistics prodStats = new ProductionStatistics(1000);
@@ -489,8 +488,8 @@ public class AppTest {
 		engine.addProperty("low powerband", "1500");
 		engine.addProperty("high powerband", "4500");
 
-		em.persist(engine);
 		engine.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
+		em.persist(engine);
 
 		for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator(); enginePropsIter.hasNext();) {
 			EngineProperty engineProp = enginePropsIter.next();
