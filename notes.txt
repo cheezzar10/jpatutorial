@@ -17,3 +17,14 @@ postgres=# create database cardb;
 5. creating special table for removed cars archival
 
 postgres=# create table removed_car (id integer, maker varchar(32));
+
+6. working with large objects
+
+listing them
+=# \lo_list
+
+exporting to file
+=# select lo_export(oid, '/tmp/data.bin');
+
+removing large objects
+=# select lo_unlink(oid);

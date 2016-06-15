@@ -24,6 +24,9 @@ public class Engine {
 	@Column(length = 1, nullable = false)
 	@org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
+	
+	@Column(name = "dyno_graph")
+	private java.sql.Blob dynoGraph;
 
 	public Engine() {
 
@@ -82,5 +85,13 @@ public class Engine {
 
 	public void setDiesel(boolean diesel) {
 		this.diesel = diesel;
+	}
+	
+	public java.sql.Blob getDynoGraph() {
+		return dynoGraph;
+	}
+	
+	public void setDynoGraph(java.sql.Blob dynoGraph) {
+		this.dynoGraph = dynoGraph;
 	}
 }

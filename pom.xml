@@ -22,7 +22,9 @@
 			</plugin>
 			<plugin>
         		<artifactId>maven-surefire-plugin</artifactId>
-        		<configuration>        			
+        		<configuration>
+					<forkCount>0</forkCount>
+					<argLine>-Xmx32m -Xms32m -Xloggc:gc.log -XX:+PrintGCDetails</argLine>
           			<!-- <parallel>classes</parallel> -->
         		</configuration>
       		</plugin>

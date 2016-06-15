@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.persistence.Cache;
 import javax.persistence.EntityManager;
@@ -30,9 +31,11 @@ import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.hibernate.Hibernate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.engine.jdbc.LobCreator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,6 +52,14 @@ public class AppTest {
 	public static void closeEntityManagerFactory() {
 		emf.close();
 	}
+	
+	private java.sql.Blob generateRandomBytes(EntityManager em, int size) {
+		Random rand = new Random();
+		byte[] bytes = new byte[size];
+		rand.nextBytes(bytes);
+		LobCreator lobCreator = Hibernate.getLobCreator((Session)em.getDelegate());
+		return lobCreator.createBlob(bytes);
+	}
 
 	@Test
 	public void testCreateCars() {
@@ -64,6 +75,7 @@ public class AppTest {
 
 		Engine engine = new Engine("BMW", "N47", 184);
 		car.setEngine(engine);
+		engine.setDynoGraph(generateRandomBytes(em, 1024 * 16));
 
 		em.persist(car);
 		System.out.printf("Car id: %d%n", car.getId());
@@ -283,6 +295,7 @@ public class AppTest {
 			String engineModel, int power) {
 		Car car = new Car(carMaker, carModel);
 		Engine engine = new Engine(engineMaker, engineModel, power);
+		engine.setDynoGraph(generateRandomBytes(em, 32 * 1024));
 		car.setEngine(engine);
 		em.persist(car);
 		return car.getId();
@@ -453,6 +466,9 @@ public class AppTest {
 
 	@Test
 	public void testSetEngineProperties() {
+		Runtime runtime = Runtime.getRuntime();
+		System.out.printf("mem (before): total = %d free = %d%n", runtime.totalMemory(), runtime.freeMemory());
+		
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
@@ -460,6 +476,19 @@ public class AppTest {
 		Engine engine = new Engine("BMW", "N54", 302);
 		engine.addProperty("type", "four stroke bi-turbo");
 		engine.addProperty("engine block", "aluminium with cast iron liners");
+		engine.addProperty("cylinder head", "dual camshaft 4-valves per cylynder");
+		engine.addProperty("displacement", "2979 cc");
+		engine.addProperty("redline", "7000");
+		engine.addProperty("compression ratio", "10.2:1");
+		engine.addProperty("bore", "84 mm");
+		engine.addProperty("stroke", "89.6 mm");
+		engine.addProperty("production start", "2007");
+		engine.addProperty("production end", "2013");
+		engine.addProperty("weight", "195 kg");
+		engine.addProperty("low powerband", "1500");
+		engine.addProperty("high powerband", "4500");
+		
+		engine.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
 
 		em.persist(engine);
 
@@ -479,6 +508,8 @@ public class AppTest {
 		testGetEnginePropertyByEngineAndName(engine.getId(), "type");
 		testGetEngineWithFilteredProps(engine.getId());
 		// testRemoveEngineWithFilteredProperties(engine.getId());
+		
+		System.out.printf("mem (after): total = %d free = %d%n", runtime.totalMemory(), runtime.freeMemory());
 	}
 
 	private void testGetEngineWithFilteredProps(Integer engineId) {
@@ -498,10 +529,10 @@ public class AppTest {
 			}
 		}
 		
-		assertEquals(1, engine.getProperties().size());
+		assertEquals(12, engine.getProperties().size());
 		// em.clear();
 		// em.refresh(engine);
-		assertEquals(2, query.getSingleResult().getProperties().size());
+		assertEquals(13, query.getSingleResult().getProperties().size());
 		
 		tx.commit();
 		em.close();
@@ -551,7 +582,7 @@ public class AppTest {
 
 		// em.find(EnginePropertyChangeRec.class, firstRecId);
 
-		assertEquals(2, recs.size());
+		assertEquals(13, recs.size());
 
 		tx.commit();
 		em.close();
