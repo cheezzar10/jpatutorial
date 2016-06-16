@@ -8,15 +8,15 @@ public class EngineDynoGraph {
 	@Id
 	private Integer id;
 	
-	@Column(name = "dyno_graph")
+	@Column(name = "dyno_graph", nullable = false)
 	private byte[] dynoGraph;
 	
 	public EngineDynoGraph() {
 		
 	}
 	
-	public EngineDynoGraph(Engine engine) {
-		this.id = engine.getId();
+	public EngineDynoGraph(Integer engineId) {
+		this.id = engineId;
 	}
 	
 	public Integer getId() {

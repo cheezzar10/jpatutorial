@@ -46,6 +46,16 @@ public class AppTest {
 	@BeforeClass
 	public static void createEntityManagerFactory() {
 		emf = Persistence.createEntityManagerFactory("car");
+		
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		
+		Query query = em.createNativeQuery("alter table engine drop constraint fk_d9fc0wgwhjxbnn4e1mhyrh9vo");
+		query.executeUpdate();
+		
+		tx.commit();
+		em.close();
 	}
 
 	@AfterClass
@@ -76,7 +86,11 @@ public class AppTest {
 		car.setEngine(engine);
 		em.persist(car);
 		
-		engine.setDynoGraph(generateRandomBytes(em, 1024 * 16));
+		EngineDynoGraph dynoGraph = new EngineDynoGraph(engine.getId());
+		dynoGraph.setDynoGraph(generateRandomBytes(em, 1024 * 16));
+		em.persist(dynoGraph);
+		
+		engine.setDynoGraph(dynoGraph);
 		
 		System.out.printf("Car id: %d%n", car.getId());
 
@@ -297,7 +311,13 @@ public class AppTest {
 		Engine engine = new Engine(engineMaker, engineModel, power);
 		car.setEngine(engine);
 		em.persist(car);
-		engine.setDynoGraph(generateRandomBytes(em, 32 * 1024));
+		
+		EngineDynoGraph dynoGraph = new EngineDynoGraph(engine.getId());
+		dynoGraph.setDynoGraph(generateRandomBytes(em, 32 * 1024));
+		em.persist(dynoGraph);
+		
+		engine.setDynoGraph(dynoGraph);
+		
 		return car.getId();
 	}
 
@@ -343,7 +363,13 @@ public class AppTest {
 		engine.setDiesel(true);
 		car.setEngine(engine);
 		em.persist(car);
-		engine.setDynoGraph(generateRandomBytes(em, 8 * 1024));
+		
+		EngineDynoGraph dynoGraph = new EngineDynoGraph(engine.getId());
+		dynoGraph.setDynoGraph(generateRandomBytes(em, 8 * 1024));
+		em.persist(dynoGraph);
+		
+		engine.setDynoGraph(dynoGraph);
+		
 		System.out.printf("Car id: %s%n", car.getId());
 
 		ProductionStatistics prodStats = new ProductionStatistics(1000);
@@ -490,7 +516,12 @@ public class AppTest {
 		engine.addProperty("high powerband", "4500");
 
 		em.persist(engine);
-		engine.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
+		
+		EngineDynoGraph dynoGraph = new EngineDynoGraph(engine.getId());
+		dynoGraph.setDynoGraph(generateRandomBytes(em, 1024 * 1024));
+		em.persist(dynoGraph);
+		
+		engine.setDynoGraph(dynoGraph);
 
 		for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator(); enginePropsIter.hasNext();) {
 			EngineProperty engineProp = enginePropsIter.next();
@@ -544,6 +575,10 @@ public class AppTest {
 		tx.begin();
 
 		Engine engine = em.find(Engine.class, engineId);
+		EngineDynoGraph dynoGraph = engine.getDynoGraph();
+		
+		System.out.printf("dyno graph size = %d%n", dynoGraph.getDynoGraph().length);
+		
 		Engine engineProxy = em.getReference(Engine.class, engineId);
 
 		System.out.printf("engine proxy class: %s%n", engineProxy.getClass());

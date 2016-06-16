@@ -2,6 +2,7 @@ package com.parallels.pa.rnd.jpa;
 
 import java.util.*;
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 @Entity
 @Table(name = "engine")
@@ -25,8 +26,8 @@ public class Engine {
 	@org.hibernate.annotations.Type(type = "yes_no")
 	private boolean diesel;
 	
-	@PrimaryKeyJoinColumn
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@PrimaryKeyJoinColumn(foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "engine_dyno_graph_fk"))
+	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	private EngineDynoGraph dynoGraph;
 
 	public Engine() {
@@ -88,14 +89,16 @@ public class Engine {
 		this.diesel = diesel;
 	}
 	
-	public byte[] getDynoGraph() {
-		return dynoGraph.getDynoGraph();
+	public EngineDynoGraph getDynoGraph() {
+		return dynoGraph;
 	}
 	
-	public void setDynoGraph(byte[] dynoGraph) {
-		if (this.dynoGraph == null) {
-			this.dynoGraph = new EngineDynoGraph(this);
-		}
-		this.dynoGraph.setDynoGraph(dynoGraph);
+	public void setDynoGraph(EngineDynoGraph dynoGraph) {
+		this.dynoGraph = dynoGraph;
+	}
+	
+	@PrePersist
+	private void dummyDynoGraph() {
+		dynoGraph = new EngineDynoGraph(0);
 	}
 }
