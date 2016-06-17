@@ -28,3 +28,15 @@ exporting to file
 
 removing large objects
 =# select lo_unlink(oid);
+
+database cleanup
+
+delete from engine_prop_change_rec;
+delete from engine_property;
+delete from options;
+delete from car;
+delete from engine;
+delete from garage;
+delete  from owner;
+delete from plant;
+delete from production_stats;
