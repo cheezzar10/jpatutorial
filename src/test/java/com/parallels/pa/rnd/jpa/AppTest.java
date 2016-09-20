@@ -1,9 +1,6 @@
 package com.parallels.pa.rnd.jpa;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -548,10 +545,12 @@ public class AppTest {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 		
-		TypedQuery<Engine> query = em.createQuery("select e from Engine e left join fetch e.properties ep where e.id = :engineId", Engine.class);
+		TypedQuery<Engine> query = em.createQuery("select distinct e from Engine e left join fetch e.properties ep where e.id = :engineId", Engine.class);
 		query.setParameter("engineId", engineId);
 		
-		Engine engine = query.getSingleResult();
+		List<Engine> engines = query.getResultList();
+		assertTrue(engines.size() == 1);
+		Engine engine = engines.iterator().next();
 		em.detach(engine);
 		for (Iterator<EngineProperty> enginePropsIter = engine.getProperties().iterator(); enginePropsIter.hasNext();) {
 			EngineProperty prop = enginePropsIter.next();
@@ -745,11 +744,12 @@ public class AppTest {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
-
+		
+		System.out.printf("loading owner #%d%n", ownerId);
 		TypedQuery<Owner> query = em.createQuery("select o from Owner o join o.cars c where o.id = :id", Owner.class);
 		query.setParameter("id", ownerId);
 		// query.setHint("org.hibernate.readOnly", Boolean.TRUE.toString());
-		Owner owner = query.getSingleResult();
+		Owner owner = em.find(Owner.class, ownerId);
 
 		int rowsCount = 0;
 		for (Owner row : query.getResultList()) {

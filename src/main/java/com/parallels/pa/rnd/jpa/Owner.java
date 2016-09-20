@@ -2,6 +2,8 @@ package com.parallels.pa.rnd.jpa;
 
 import java.util.*;
 import javax.persistence.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "owner")
@@ -19,7 +21,8 @@ public class Owner {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
 	private Set<Car> cars = new HashSet<>();
 
-	@OneToMany(fetch = FetchType.LAZY)
+	@OneToMany(fetch = FetchType.EAGER)
+	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "owner_id")
 	private Set<Garage> garages = new HashSet<>();
 
