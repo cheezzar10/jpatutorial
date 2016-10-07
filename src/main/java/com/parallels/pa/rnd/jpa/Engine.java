@@ -2,7 +2,6 @@ package com.parallels.pa.rnd.jpa;
 
 import java.util.*;
 import javax.persistence.*;
-import javax.validation.constraints.*;
 
 @Entity
 @Table(name = "engine")

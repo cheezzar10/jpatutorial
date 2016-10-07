@@ -18,9 +18,18 @@ public class ProductionStatistics {
 	public ProductionStatistics(int unitsMade) {
 		this.unitsMade = unitsMade;
 	}
+	
+	public ProductionStatistics(int id, int unitsMade) {
+		this.id = id;
+		this.unitsMade = unitsMade;
+	}
 
 	public Integer getId() {
 		return id;
+	}
+	
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 	public int getUnitsMade() {

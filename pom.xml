@@ -26,6 +26,9 @@
 					<forkCount>0</forkCount>
 					<argLine>-Xmx32m -Xms32m -Xloggc:gc.log -XX:+PrintGCDetails</argLine>
           			<!-- <parallel>classes</parallel> -->
+          			<includes>
+          				<include>**/ScrapTest.java</include>
+          			</includes>
         		</configuration>
       		</plugin>
 		</plugins>

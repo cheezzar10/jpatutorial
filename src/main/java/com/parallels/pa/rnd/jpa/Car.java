@@ -1,8 +1,9 @@
 package com.parallels.pa.rnd.jpa;
 
-import java.util.*;
+import java.util.Map;
+
 import javax.persistence.*;
-import org.hibernate.annotations.ForeignKey;
+
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
@@ -48,8 +49,7 @@ public class Car {
 	private Engine engine;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner_id")
-	@ForeignKey(name = "car_owner_fk")
+	@JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "car_owner_fk"))
 	private Owner owner;
 	
 	public Car() {

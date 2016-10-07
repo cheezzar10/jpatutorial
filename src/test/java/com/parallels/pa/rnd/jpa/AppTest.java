@@ -28,11 +28,9 @@ import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.hibernate.Hibernate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.engine.jdbc.LobCreator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -105,7 +103,7 @@ public class AppTest {
 		MapJoin<Car, String, String> options1 = car1.joinMap("options");
 		cq.multiselect(options1.value(), options1.value());
 		cq.where(cb.equal(car1.get("maker"), cb.parameter(String.class, "maker")),
-				cb.equal(car1.get("model"), cb.parameter(String.class, "model")), options1.key().in(opts));
+				cb.equal(car1.get("model"), cb.parameter(String.class, "model")), options1.key().in((Object[])opts));
 
 		TypedQuery<Object[]> query = em.createQuery(cq);
 		query.setParameter("maker", "BMW");
@@ -246,7 +244,7 @@ public class AppTest {
 		Join<Car, Engine> engine = car.join("engine");
 		// cq.select(car.<Engine>get("engine").<Integer>get("id"));
 		cq.multiselect(car, engine.get("id"));
-		cq.where(car.get("id").in(carIds));
+		cq.where(car.get("id").in((Object[])carIds));
 		TypedQuery<Object[]> query = em.createQuery(cq);
 
 		List<Object[]> carsAndEngineIds = query.getResultList();
@@ -294,8 +292,11 @@ public class AppTest {
 
 		@SuppressWarnings("unchecked")
 		List<Integer> result = (List<Integer>) query.getResultList();
+		
+		Integer maxId = 0;
 		for (Integer row : result) {
 			Integer col = row;
+			maxId = Math.max(col, maxId);
 		}
 
 		tx.commit();
@@ -371,6 +372,7 @@ public class AppTest {
 
 		ProductionStatistics prodStats = new ProductionStatistics(1000);
 		car.setProductionStats(prodStats);
+		System.out.println("persisting production statistics");
 		em.persist(prodStats);
 
 		em.flush();
@@ -590,6 +592,7 @@ public class AppTest {
 		query.setParameter("name", name);
 
 		EngineProperty engineProp = query.getSingleResult();
+		assertNotNull(engineProp);
 
 		tx.commit();
 		em.close();
@@ -731,6 +734,7 @@ public class AppTest {
 		em.flush();
 
 		Car car = em.find(Car.class, carIds[1]);
+		assertNotNull(car);
 
 		tx.commit();
 		em.close();

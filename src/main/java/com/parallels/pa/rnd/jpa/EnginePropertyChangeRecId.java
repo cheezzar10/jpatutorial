@@ -3,6 +3,8 @@ package com.parallels.pa.rnd.jpa;
 import java.io.*;
 
 public class EnginePropertyChangeRecId implements Serializable {
+	private static final long serialVersionUID = 4566760136970682684L;
+	
 	private EnginePropertyId property;
 	private long time;
 
