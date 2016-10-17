@@ -69,6 +69,8 @@ public class ScrapTest {
 		Owner owner = new Owner("Alessandro", "Del Piero");
 		owner.getCars().add(car);
 		car.setOwner(owner);
+		owner.getAddresses().add(new Address("Italia", "Milan"));
+		
 		em.persist(owner);
 		
 		tx.commit();

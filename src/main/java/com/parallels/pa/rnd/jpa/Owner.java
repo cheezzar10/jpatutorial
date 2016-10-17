@@ -25,6 +25,10 @@ public class Owner {
 	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "owner_id")
 	private Set<Garage> garages = new HashSet<>();
+	
+	@ElementCollection
+	@CollectionTable(name = "address", joinColumns = @JoinColumn(name = "owner_id"))
+	private Set<Address> addresses = new HashSet<>();
 
 	public Owner() {
 
@@ -65,5 +69,13 @@ public class Owner {
 
 	public void setGarages(Set<Garage> garages) {
 		this.garages = garages;
+	}
+
+	public Set<Address> getAddresses() {
+		return addresses;
+	}
+
+	public void setAddresses(Set<Address> addresses) {
+		this.addresses = addresses;
 	}
 }
