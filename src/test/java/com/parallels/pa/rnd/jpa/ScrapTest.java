@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.stat.SessionStatistics;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ScrapTest {
@@ -40,6 +41,7 @@ public class ScrapTest {
 		emf.close();
 	}
 	
+	@Test
 	public void testCarPersisting() throws Exception {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
@@ -59,11 +61,22 @@ public class ScrapTest {
 		engine.setDynoGraph(dynoGraph);
 		System.out.printf("new car id: %d%n", car.getId());
 		
+		TypedQuery<Car> query = em.createQuery("select c from Car c where c.id != :carId", Car.class);
+		query.setParameter("carId", car.getId());
+		
+		System.out.printf("%d car found%n", query.getResultList().size());
+		
+		Owner owner = new Owner("Alessandro", "Del Piero");
+		owner.getCars().add(car);
+		car.setOwner(owner);
+		em.persist(owner);
+		
 		tx.commit();
 		em.close();
 	}
 	
 	@Test
+	@Ignore
 	public void testProductionStatPersisting() {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
@@ -74,12 +87,6 @@ public class ScrapTest {
 		System.out.println("production statistics saved");
 		
 		printSessionStat(em, "after persist");
-		
-		Query delete = em.createQuery("delete ProductionStatistics");
-		int deleted = delete.executeUpdate();
-		System.out.printf("%d stats removed%n", deleted);
-		
-		printSessionStat(em, "after bulk removal");
 		
 		TypedQuery<ProductionStatistics> query = em.createQuery("from ProductionStatistics", ProductionStatistics.class);
 		System.out.printf("count: %d%n", query.getResultList().size());
