@@ -71,14 +71,40 @@ public class ScrapTest {
 		car.setOwner(owner);
 		owner.getAddresses().add(new Address("Italia", "Milan"));
 		
+		Garage garage = new Garage("5th Avenue", 2);
+		owner.getGarages().add(garage);
+		
+		em.persist(garage);
 		em.persist(owner);
+		
+		tx.commit();
+		em.close();
+		
+		testLinkedEntitiesManagement(car.getId());
+	}
+	
+	private void testLinkedEntitiesManagement(Integer carId) {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		
+		Car car = em.find(Car.class, carId);
+		Owner owner = car.getOwner();
+		
+		Garage mosGarage = new Garage("Moscow", 1);
+		em.persist(mosGarage);
+		// owner.getGarages().add(mosGarage);
+		
+		for (Garage garage : owner.getGarages()) {
+			owner.getGarages().remove(garage);
+		}
 		
 		tx.commit();
 		em.close();
 	}
 	
 	@Test
-	@Ignore
+	@Ignore("concenrating on associations")
 	public void testProductionStatPersisting() {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();

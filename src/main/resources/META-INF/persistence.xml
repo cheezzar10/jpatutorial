@@ -9,7 +9,7 @@
 		<properties>
 			<!-- JDBC connection properties -->
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.229/cardb"/>
+			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.221/cardb"/>
 			<property name="javax.persistence.jdbc.user" value="cardb"/>
 			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
 			
