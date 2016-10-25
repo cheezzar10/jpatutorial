@@ -80,9 +80,22 @@ public class ScrapTest {
 		tx.commit();
 		em.close();
 		
+		createPoorOwner();
 		testLinkedEntitiesManagement(car.getId());
 	}
 	
+	private void createPoorOwner() {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		
+		Owner owner = new Owner("Billy", "Bones");
+		em.persist(owner);
+		
+		tx.commit();
+		em.close();
+	}
+
 	private void testLinkedEntitiesManagement(Integer carId) {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
@@ -93,11 +106,9 @@ public class ScrapTest {
 		
 		Garage mosGarage = new Garage("Moscow", 1);
 		em.persist(mosGarage);
-		// owner.getGarages().add(mosGarage);
+		owner.getGarages().add(mosGarage);
 		
-		for (Garage garage : owner.getGarages()) {
-			owner.getGarages().remove(garage);
-		}
+		// for (Garage garage : owner.getGarages()) owner.getGarages().remove(garage);
 		
 		tx.commit();
 		em.close();
