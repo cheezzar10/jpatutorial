@@ -115,7 +115,7 @@ public class ScrapTest {
 	}
 	
 	@Test
-	@Ignore("concenrating on associations")
+	@Ignore("concentrating on associations")
 	public void testProductionStatPersisting() {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();

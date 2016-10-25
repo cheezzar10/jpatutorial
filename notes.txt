@@ -34,3 +34,14 @@ exporting to file
 
 removing large objects
 =# select lo_unlink(oid);
+
+running specific test
+$ mvn -Dtest=ProjectsTest package
+
+using recursive CTEs
+
+with recursive project_hierarchy as (
+	select p.id, p.parent_id, p.artifactid from project p where p.parent_id is null 
+union all 
+	select p.id, p.parent_id, p.artifactid from project p inner join project_hierarchy ph on ph.parent_id = p.id
+) select * from project_hierarchy;
