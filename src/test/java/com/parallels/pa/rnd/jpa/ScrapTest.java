@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -16,6 +17,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import org.junit.Assert;
 
 public class ScrapTest {
 	private static EntityManagerFactory emf;
@@ -109,6 +112,16 @@ public class ScrapTest {
 		owner.getGarages().add(mosGarage);
 		
 		// for (Garage garage : owner.getGarages()) owner.getGarages().remove(garage);
+		
+		TypedQuery<Owner> query = em.createQuery("select o from Owner o left join fetch o.garages where o.id = :ownerId", Owner.class);
+		query.setParameter("ownerId", owner.getId());
+		
+		try {
+			Owner fetchedOwner = query.getSingleResult();
+			Assert.assertSame(owner, fetchedOwner);
+		} catch (NoResultException ownerNotFoundEx) {
+			Assert.fail();
+		}
 		
 		tx.commit();
 		em.close();

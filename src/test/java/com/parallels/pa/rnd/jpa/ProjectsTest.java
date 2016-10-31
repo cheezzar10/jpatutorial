@@ -46,6 +46,13 @@ public class ProjectsTest {
 		ejbProject.setParent(parent);
 		em.persist(ejbProject);
 		
+		Project actProj = new Project(GROUP_ID, "actuator-project", VERSION);
+		em.persist(actProj);
+		
+		Project actCliProj = new Project(GROUP_ID, "actuator-cli", VERSION);
+		actCliProj.setParent(actProj);
+		em.persist(actCliProj);
+		
 		tx.commit();
 		em.close();
 		
