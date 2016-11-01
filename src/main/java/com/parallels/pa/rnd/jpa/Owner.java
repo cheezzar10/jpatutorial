@@ -7,6 +7,15 @@ import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "owner")
+@NamedEntityGraph(name = "Owner.withAddresses", 
+		attributeNodes = {
+			@NamedAttributeNode(value = "addresses", subgraph = "Address.withCountry") 
+		},
+		subgraphs = {
+				@NamedSubgraph(name = "Address.withCountry", attributeNodes = {
+					@NamedAttributeNode("country")	
+				})
+		})
 public class Owner {
 	@Id
 	@GeneratedValue
@@ -26,8 +35,7 @@ public class Owner {
 	@JoinColumn(name = "owner_id")
 	private Set<Garage> garages = new HashSet<>();
 	
-	@ElementCollection
-	@CollectionTable(name = "address", joinColumns = @JoinColumn(name = "owner_id"))
+	@OneToMany(fetch = FetchType.LAZY)
 	private Set<Address> addresses = new HashSet<>();
 
 	public Owner() {

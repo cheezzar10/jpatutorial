@@ -46,4 +46,4 @@ union all
 	select p.id, p.parent_id, p.artifactid from project p inner join project_hierarchy ph on ph.parent_id = p.id
 ) select * from project_hierarchy;
 
-$ mvn -Dtest=ProjectsTest package
+select * from information_schema.table_constraints where table_name = 'address';

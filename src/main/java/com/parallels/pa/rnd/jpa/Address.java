@@ -1,12 +1,24 @@
 package com.parallels.pa.rnd.jpa;
 
 import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
-@Embeddable
+@Entity
+@Table(name = "address")
 public class Address {
-	@Column(name = "country")
-	private String country;
+	@Id
+	@GeneratedValue
+	private Integer id;
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "country_id")
+	private Country country;
 	
 	@Column(name = "city")
 	private String city;
@@ -21,22 +33,26 @@ public class Address {
 		
 	}
 	
-	public Address(String country, String city) {
+	public Address(Country country, String city) {
 		this(country, city, "N/A", "N/A");
 	}
 
-	public Address(String country, String city, String street, String building) {
+	public Address(Country country, String city, String street, String building) {
 		this.country = country;
 		this.city = city;
 		this.street = street;
 		this.building = building;
 	}
+	
+	public Integer getId() {
+		return id;
+	}
 
-	public String getCountry() {
+	public Country getCountry() {
 		return country;
 	}
 
-	public void setCountry(String country) {
+	public void setCountry(Country country) {
 		this.country = country;
 	}
 
@@ -65,6 +81,6 @@ public class Address {
 	}
 	
 	public String toString() {
-		return String.format("address: {%s, %s}", country, city);
+		return String.format("{country: %s, city: %s}", country, city);
 	}
 }

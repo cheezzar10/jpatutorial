@@ -52,12 +52,12 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
-			<version>4.3.7.Final</version>
+			<version>5.0.10.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
-			<version>4.3.7.Final</version>
+			<version>5.0.10.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>

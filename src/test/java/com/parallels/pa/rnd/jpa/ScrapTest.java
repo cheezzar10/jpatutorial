@@ -2,6 +2,7 @@ package com.parallels.pa.rnd.jpa;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -32,7 +33,7 @@ public class ScrapTest {
 		tx.begin();
 		
 		// engine.dynoGraph ConstraintMode.NO_CONSTRAINT doesn't work
-		Query query = em.createNativeQuery("alter table engine drop constraint fk_d9fc0wgwhjxbnn4e1mhyrh9vo");
+		Query query = em.createNativeQuery("alter table engine drop constraint fknwr60acu6ln8s1iqurabqskf8");
 		query.executeUpdate();
 		
 		tx.commit();
@@ -69,10 +70,17 @@ public class ScrapTest {
 		
 		System.out.printf("%d car found%n", query.getResultList().size());
 		
+		Country country = new Country("IT", "Italian Republic");
+		em.persist(country);
+		
 		Owner owner = new Owner("Alessandro", "Del Piero");
 		owner.getCars().add(car);
 		car.setOwner(owner);
-		owner.getAddresses().add(new Address("Italia", "Milan"));
+		
+		Address addr = new Address(country, "Milan");
+		em.persist(addr);
+		
+		owner.getAddresses().add(addr);
 		
 		Garage garage = new Garage("5th Avenue", 2);
 		owner.getGarages().add(garage);
@@ -113,7 +121,9 @@ public class ScrapTest {
 		
 		// for (Garage garage : owner.getGarages()) owner.getGarages().remove(garage);
 		
-		TypedQuery<Owner> query = em.createQuery("select o from Owner o left join fetch o.garages where o.id = :ownerId", Owner.class);
+		System.out.println("loading owner using fetch graph");
+		TypedQuery<Owner> query = em.createQuery("select o from Owner o left join fetch o.garages left join fetch o.addresses where o.id = :ownerId", Owner.class);
+		query.setHint("javax.persistence.fetchgraph", em.getEntityGraph("Owner.withAddresses"));
 		query.setParameter("ownerId", owner.getId());
 		
 		try {
@@ -125,6 +135,12 @@ public class ScrapTest {
 		
 		tx.commit();
 		em.close();
+		
+		Set<Address> addresses = owner.getAddresses();
+		for (Address addr : addresses) {
+			Assert.assertNotNull(addr.getCity());
+			Assert.assertNotNull(addr.getCountry().getId());
+		}
 	}
 	
 	@Test
