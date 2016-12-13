@@ -1,5 +1,10 @@
 package com.parallels.pa.rnd.jpa;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "project")
@@ -27,6 +34,10 @@ public class Project {
 	
 	@Column(length = 64, nullable = false)
 	private String version;
+	
+	@Column(name = "created", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date created;
 	
 	public Project() {
 		
@@ -74,7 +85,22 @@ public class Project {
 		this.version = version;
 	}
 	
+	public Date getCreated() {
+		return created;
+	}
+
+	public void setCreated(Date created) {
+		this.created = created;
+	}
+	
+	public void setCreated(int year, int month, int dayOfMonth, int hour, int minute) {
+		LocalDateTime createdDateTime = LocalDateTime.of(year, month, dayOfMonth, hour, minute);
+		created = Date.from(ZonedDateTime.of(createdDateTime, ZoneId.systemDefault()).toInstant());
+	}
+
 	public String toString() {
 		return String.format("project#%d : { %s:%s:%s }", id, groupId, artifactId, version);
 	}
+
+	
 }
