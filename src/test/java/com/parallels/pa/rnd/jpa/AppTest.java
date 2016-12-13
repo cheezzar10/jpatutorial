@@ -46,7 +46,7 @@ public class AppTest {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 		
-		Query query = em.createNativeQuery("alter table engine drop constraint fk_d9fc0wgwhjxbnn4e1mhyrh9vo");
+		Query query = em.createNativeQuery("alter table engine drop constraint fknwr60acu6ln8s1iqurabqskf8");
 		query.executeUpdate();
 		
 		tx.commit();
@@ -148,8 +148,22 @@ public class AppTest {
 		testFindEnginesWithPowerInRange(220, 350);
 		testFindCarsWithUniqueEngine(carIds[1]);
 		testCountEngineMakersQuery();
+		testSelectAllObjects();
 
 		System.out.println("test cars with engines test completed");
+	}
+	
+	private void testSelectAllObjects() {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		
+		Query query = em.createQuery("from java.io.Serializable");
+		List<?> objects = query.getResultList();
+		System.out.printf("objects count = %d%n", objects.size());
+		
+		tx.commit();
+		em.close();
 	}
 
 	private void testCountEngineMakersQuery() {
@@ -750,11 +764,18 @@ public class AppTest {
 		tx.begin();
 		
 		System.out.printf("loading owner #%d%n", ownerId);
-		TypedQuery<Owner> query = em.createQuery("select o from Owner o join o.cars c where o.id = :id", Owner.class);
+		// TypedQuery<Owner> query = em.createQuery("select o from Owner o join o.cars c where o.id = :id", Owner.class);
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Owner> cq = cb.createQuery(Owner.class);
+		Root<Owner> root = cq.from(Owner.class);
+		Join<Owner, Car> carJoin = root.join("cars");
+		cq.select(root);
+		cq.where(cb.equal(root.get("id"), cb.parameter(Integer.class, "id")));
+		TypedQuery<Owner> query = em.createQuery(cq);
+		
 		query.setParameter("id", ownerId);
 		// query.setHint("org.hibernate.readOnly", Boolean.TRUE.toString());
-		Owner owner = em.find(Owner.class, ownerId);
-
+		
 		int rowsCount = 0;
 		for (Owner row : query.getResultList()) {
 			assertEquals(2, row.getCars().size());
@@ -765,6 +786,7 @@ public class AppTest {
 
 		Car car = em.find(Car.class, carId);
 
+		Owner owner = em.find(Owner.class, ownerId);
 		car.setOwner(owner);
 		owner.getCars().add(car);
 
