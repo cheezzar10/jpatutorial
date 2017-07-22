@@ -8,16 +8,16 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<properties>
 			<!-- JDBC connection properties -->
-			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.221/cardb"/>
-			<property name="javax.persistence.jdbc.user" value="cardb"/>
-			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
+			<property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
+			<property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:car"/>
+			<property name="javax.persistence.jdbc.user" value="sa"/>
+			<property name="javax.persistence.jdbc.password" value=""/>
 			
 			<!-- Hibernate JPA provider properties -->
-			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
 			<property name="hibernate.hbm2ddl.auto" value="create"/>
 			<property name="hibernate.show_sql" value="true"/>
-
+			
 			<!-- Hibernate shared cache settings -->
 			<property name="hibernate.cache.region.factory_class" value="org.hibernate.cache.ehcache.EhCacheRegionFactory" />
 			<property name="hibernate.cache.use_second_level_cache" value="true" />

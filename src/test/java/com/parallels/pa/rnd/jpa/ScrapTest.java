@@ -8,16 +8,22 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
-import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.hibernate.Session;
+import org.hibernate.cfg.Environment;
+import org.hibernate.jpa.boot.spi.Bootstrap;
+import org.hibernate.jpa.boot.spi.EntityManagerFactoryBuilder;
+import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
 import org.hibernate.stat.SessionStatistics;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.parallels.pa.rnd.jpa.boot.EntityManagerFactoryEnvironment;
+import com.parallels.pa.rnd.jpa.boot.PersistenceUnitDescriptorBuilder;
 
 import org.junit.Assert;
 
@@ -26,7 +32,34 @@ public class ScrapTest {
 
 	@BeforeClass
 	public static void createEntityManagerFactory() {
-		emf = Persistence.createEntityManagerFactory("car");
+		PersistenceUnitDescriptorBuilder descriptorBuilder = new PersistenceUnitDescriptorBuilder();
+		descriptorBuilder.setPersistentUnitName("car");
+		
+		descriptorBuilder.addManagedClass(Car.class);
+		descriptorBuilder.addManagedClass(Engine.class);
+		descriptorBuilder.addManagedClass(Owner.class);
+		descriptorBuilder.addManagedClass(Garage.class);
+		descriptorBuilder.addManagedClass(Address.class);
+		descriptorBuilder.addManagedClass(Country.class);
+		descriptorBuilder.addManagedClass(EngineProperty.class);
+		descriptorBuilder.addManagedClass(EngineDynoGraph.class);
+		descriptorBuilder.addManagedClass(ProductionStatistics.class);
+		
+		PersistenceUnitDescriptor descriptor = descriptorBuilder.build();
+		EntityManagerFactoryBuilder emfBuilder = Bootstrap.getEntityManagerFactoryBuilder(descriptor, EntityManagerFactoryEnvironment.newEnv(
+				Environment.DRIVER, "org.postgresql.Driver",
+				Environment.URL, "jdbc:postgresql://10.0.1.202/cardb",
+				Environment.USER, "cardb",
+				Environment.PASS, "1q2w3e",
+				Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect",
+				Environment.HBM2DDL_AUTO, "create",
+				Environment.CACHE_REGION_FACTORY, "org.hibernate.cache.ehcache.EhCacheRegionFactory",
+				Environment.USE_SECOND_LEVEL_CACHE, "true",
+				Environment.USE_QUERY_CACHE, "true",
+				Environment.SHOW_SQL, "true"
+		));
+		
+		emf = emfBuilder.build();
 		
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
