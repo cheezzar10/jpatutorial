@@ -9,14 +9,15 @@
 		<properties>
 			<!-- JDBC connection properties -->
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.221/cardb"/>
+			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.210/cardb"/>
 			<property name="javax.persistence.jdbc.user" value="cardb"/>
 			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
 			
 			<!-- Hibernate JPA provider properties -->
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
 			<property name="hibernate.hbm2ddl.auto" value="create"/>
-			<property name="hibernate.show_sql" value="true"/>
+			<!-- using log4j2 logging framework configuration for statements logging -->
+			<property name="hibernate.show_sql" value="false"/>
 
 			<!-- Hibernate shared cache settings -->
 			<property name="hibernate.cache.region.factory_class" value="org.hibernate.cache.ehcache.EhCacheRegionFactory" />

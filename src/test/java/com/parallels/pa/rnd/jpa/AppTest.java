@@ -428,6 +428,7 @@ public class AppTest {
 		// cache.evictAll();
 
 		tryingToPersistDetachedPlant(emf, plant);
+		tryToMergeTransientPlant(emf);
 	}
 
 	private void tryingToPersistDetachedPlant(EntityManagerFactory emf, Plant plant) {
@@ -438,6 +439,20 @@ public class AppTest {
 		// fixing id to persist detached entity one more time
 		plant.setId(2);
 		em.persist(plant);
+
+		tx.commit();
+		em.close();
+	}
+	
+	private void tryToMergeTransientPlant(EntityManagerFactory emf) {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+
+		Plant plant = new Plant();
+		plant.setId(1);
+		plant.setName("Dingolfing");
+		em.merge(plant);
 
 		tx.commit();
 		em.close();
@@ -600,12 +615,7 @@ public class AppTest {
 
 		System.out.printf("loading engine #%d property %s%n", engineId, name);
 
-		TypedQuery<EngineProperty> query = em.createQuery(
-				"select ep from EngineProperty ep where ep.engine = :engine and ep.name = :name", EngineProperty.class);
-		query.setParameter("engine", engine);
-		query.setParameter("name", name);
-
-		EngineProperty engineProp = query.getSingleResult();
+		EngineProperty engineProp = em.find(EngineProperty.class, new EnginePropertyId(engine.getId(), name));
 		assertNotNull(engineProp);
 
 		tx.commit();

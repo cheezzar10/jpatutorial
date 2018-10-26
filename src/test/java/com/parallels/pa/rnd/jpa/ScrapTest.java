@@ -73,6 +73,9 @@ public class ScrapTest {
 		Country country = new Country("IT", "Italian Republic");
 		em.persist(country);
 		
+		Country notCountry = new Country("FB", "FooBar");
+		em.merge(notCountry);
+		
 		Owner owner = new Owner("Alessandro", "Del Piero");
 		owner.getCars().add(car);
 		car.setOwner(owner);
