@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.PersistenceUnitUtil;
@@ -509,10 +510,11 @@ public class AppTest {
 		// varchar(32))").executeUpdate();
 
 		SQLQuery query = session.createSQLQuery("insert into removed_car select id, maker from car where id = ?");
+		System.out.printf("sql query class: %s%n", query.getClass());
 		// query.addSynchronizedQuerySpace("sql");
 		// Query query = em.createNativeQuery("insert into removed_car select
 		// id, maker from car where id = ?");
-		query.setParameter(0, 1);
+		query.setParameter(1, 1);
 		query.executeUpdate();
 
 		tx.commit();
@@ -832,6 +834,22 @@ public class AppTest {
 		Query query = em.createQuery("delete Car c where c.owner = :owner");
 		query.setParameter("owner", owner);
 		query.executeUpdate();
+
+		// em.refresh(car, LockModeType.PESSIMISTIC_WRITE);
+		// em.detach(car);
+
+		TypedQuery<Car> checkQuery = em.createQuery("from Car c where c.id = :cid", Car.class);
+		// checkQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+		checkQuery.setParameter("cid", car.getId());
+
+		try {
+			Car car1 = checkQuery.getSingleResult();
+		} catch (NoResultException noResEx) {
+			System.out.println("car not found");
+		}
+
+		// car = em.find(Car.class, carId, LockModeType.PESSIMISTIC_WRITE);
+		// assertNull(car);
 
 		em.clear();
 

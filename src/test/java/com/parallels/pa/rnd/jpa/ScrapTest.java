@@ -54,6 +54,7 @@ public class ScrapTest {
 		System.out.println("creating production stat");
 		
 		Car car = new Car("Alfa Romeo", "Giulia QV");
+		car.setBodyStyle(BodyStyle.SEDAN);
 		Engine engine = new Engine("Ferrari", "F154", 510);
 		car.setEngine(engine);
 		em.persist(car);
@@ -96,8 +97,25 @@ public class ScrapTest {
 		
 		createPoorOwner();
 		testLinkedEntitiesManagement(car.getId());
+		
+		testQuery();
 	}
 	
+	private void testQuery() {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		
+		Session session = (Session) em.getDelegate();
+		
+		org.hibernate.query.Query<Car> query = session.createQuery("select c from Car c where str(c.bodyStyle) = 's'", Car.class);
+
+		System.out.printf("sedans: %s%n", query.getResultList());
+		
+		tx.commit();
+		em.close();
+	}
+
 	private void createPoorOwner() {
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();

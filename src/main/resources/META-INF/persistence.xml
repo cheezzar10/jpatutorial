@@ -12,6 +12,9 @@
 			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://10.27.75.210/cardb"/>
 			<property name="javax.persistence.jdbc.user" value="cardb"/>
 			<property name="javax.persistence.jdbc.password" value="1q2w3e"/>
+
+			<!-- built-in connection pool settings -->
+			<property name="hibernate.connection.pool_size" value="3"/>
 			
 			<!-- Hibernate JPA provider properties -->
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>

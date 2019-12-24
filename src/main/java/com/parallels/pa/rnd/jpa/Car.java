@@ -52,6 +52,10 @@ public class Car {
 	@JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "car_owner_fk"))
 	private Owner owner;
 	
+	@Convert(converter = BodyStyleConverter.class)
+	// @Type(type = "character")
+	private BodyStyle bodyStyle;
+	
 	public Car() {
 		
 	}
@@ -114,5 +118,13 @@ public class Car {
 
 	public void setOwner(Owner owner) {
 		this.owner = owner;
+	}
+
+	public BodyStyle getBodyStyle() {
+		return bodyStyle;
+	}
+
+	public void setBodyStyle(BodyStyle bodyStyle) {
+		this.bodyStyle = bodyStyle;
 	}
 }
