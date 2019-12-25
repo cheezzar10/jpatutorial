@@ -282,7 +282,7 @@ public class AppTest {
 		tx.begin();
 
 		Query query = em.createNativeQuery(
-				"select c.id as car_id, c.maker, c.model, c.engine_id, c.owner_id as car_owner_id, o.id as owner_id, o.first_name, o.last_name from car c left join owner o on o.id = c.owner_id where c.id = :carId",
+				"select c.id as car_id, c.maker, c.model, c.engine_id, c.owner_id as car_owner_id, c.bodystyle, o.id as owner_id, o.first_name, o.last_name from car c left join owner o on o.id = c.owner_id where c.id = :carId",
 				"Car.carAndOwner");
 		query.setParameter("carId", carId);
 		Object[] result = (Object[]) query.getSingleResult();

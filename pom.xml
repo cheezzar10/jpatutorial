@@ -30,9 +30,11 @@
 					<perCoreThreadCount>false</perCoreThreadCount>
 					<threadCount>1</threadCount>
 					<!-- <threadCountClasses>1</threadCountClasses> -->
+					<!--
           			<includes>
           				<include>**/ScrapTest.java</include>
           			</includes>
+					-->
         		</configuration>
       		</plugin>
 		</plugins>

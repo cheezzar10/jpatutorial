@@ -17,7 +17,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 		@FieldResult(name = "maker", column = "maker"),
 		@FieldResult(name = "model", column = "model"),
 		@FieldResult(name = "engine", column = "engine_id"),
-		@FieldResult(name = "owner", column = "car_owner_id")
+		@FieldResult(name = "owner", column = "car_owner_id"),
+		@FieldResult(name = "bodyStyle", column = "bodystyle")
 	}),
 	@EntityResult(entityClass = com.parallels.pa.rnd.jpa.Owner.class, fields = {
 		@FieldResult(name = "id", column = "owner_id")
