@@ -55,6 +55,10 @@ public class Car {
 	public Car() {
 		
 	}
+
+	public Car(Integer id) {
+		this.id = id;
+	}
 	
 	public Car(String maker, String model) {
 		this.maker = maker;
@@ -114,5 +118,14 @@ public class Car {
 
 	public void setOwner(Owner owner) {
 		this.owner = owner;
+	}
+
+	@Override
+	public String toString() {
+		return "Car{" +
+				"id=" + id +
+				", maker='" + maker + '\'' +
+				", model='" + model + '\'' +
+				'}';
 	}
 }

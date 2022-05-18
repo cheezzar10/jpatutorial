@@ -31,16 +31,18 @@ import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.hibernate.Hibernate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.engine.jdbc.LobCreator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AppTest {
+	private static Logger log = LoggerFactory.getLogger(AppTest.class);
+
 	private static EntityManagerFactory emf;
 
 	@BeforeClass
@@ -62,6 +64,8 @@ public class AppTest {
 
 	@Test
 	public void testCreateCars() {
+		System.out.println("create cars test started");
+
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
@@ -106,15 +110,38 @@ public class AppTest {
 		tx.commit();
 		em.close();
 
-		testRemoveEngine();
+//		testRemoveEngine();
 		testCarArchival();
 		testLoadCars(new Integer[] { car.getId() });
+		testLoadCars(new Integer[] { 2 } );
 		testLoadCarUsingNativeQuery(car.getId());
+		testCarRemovalAndCreationUsingAssignedId(car.getId());
 		testAdHocNativeQueries();
+
+		System.out.println("create cars test completed");
+	}
+
+	private void testCarRemovalAndCreationUsingAssignedId(Integer carId) {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+
+		Car car = em.find(Car.class, carId);
+		em.remove(car);
+
+//		Car newCar = new Car(carId);
+//		newCar.setMaker(car.getMaker());
+//		newCar.setModel(car.getModel());
+//		em.persist(newCar);
+
+		tx.commit();
+		em.close();
 	}
 
 	@Test
 	public void testFindCarsWithEngines() {
+		System.out.println(">>>>> find cars with engines test started >>>>>");
+
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
@@ -123,6 +150,7 @@ public class AppTest {
 				createCarWithEngine(em, "BMW", "535d", "BMW", "N57D30T1", 313) };
 		System.out.printf("car ids: %s%n", Arrays.toString(carIds));
 
+		Car car0 = em.find(Car.class, carIds[0]);
 		Car car = em.find(Car.class, carIds[1]);
 
 		// sharing engine between cars
@@ -139,7 +167,7 @@ public class AppTest {
 		testFindCarsWithUniqueEngine(carIds[1]);
 		testCountEngineMakersQuery();
 
-		System.out.println("test cars with engines test completed");
+		System.out.println("<<<<< find cars with engines test completed <<<<<");
 	}
 
 	private void testCountEngineMakersQuery() {
@@ -219,13 +247,15 @@ public class AppTest {
 		tx.begin();
 
 		Cache cache = em.getEntityManagerFactory().getCache();
-		if (cache.contains(Car.class, carIds[0])) {
-			System.out.printf("Car#%d is cached.%n", carIds[0]);
+		Integer carId = carIds[0];
+		if (cache.contains(Car.class, carId)) {
+			System.out.printf("Car#%d is cached.%n", carId);
 		} else {
-			System.out.printf("Car#%d is not cached.%n", carIds[0]);
+			System.out.printf("Car#%d is not cached.%n", carId);
 		}
 
-		System.out.println("test cars with engines test completed");
+		Car loadedCar = em.find(Car.class, carId);
+		System.out.printf("car with id %d loaded: %s%n", carId, loadedCar);
 
 		// select c.engine.id from Car c where c.id = :carId
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -454,7 +484,7 @@ public class AppTest {
 		// varchar(32))").executeUpdate();
 
 		SQLQuery query = session.createSQLQuery("insert into removed_car select id, maker from car where id = ?");
-		// query.addSynchronizedQuerySpace("sql");
+		query.addSynchronizedQuerySpace("sql");
 		// Query query = em.createNativeQuery("insert into removed_car select
 		// id, maker from car where id = ?");
 		query.setParameter(0, 1);
