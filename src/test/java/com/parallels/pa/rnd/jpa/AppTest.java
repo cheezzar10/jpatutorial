@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Predicate;
@@ -812,14 +814,31 @@ public class AppTest {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 
-		Owner owner = new Owner("Blind", "Pew", LocalDate.of(1753, 5, 5));
+		Owner newOwner = new Owner("Blind", "Pew", LocalDate.of(1753, 5, 5));
 		Garage garage = new Garage("Treasure Island", 1);
-		owner.getGarages().add(garage);
+		newOwner.getGarages().add(garage);
 
-		em.persist(owner);
+		em.persist(newOwner);
 		em.persist(garage);
 
-		TypedQuery<Owner> query = em.createQuery("select o from Owner o where o.birthDate > '1700-1-1'", Owner.class);
+		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+		CriteriaQuery<Owner> criteriaQuery = criteriaBuilder.createQuery(Owner.class);
+		Root<Owner> owner = criteriaQuery.from(Owner.class);
+
+		Expression<Date> birthDateField = owner.get("birthDate");
+
+		criteriaQuery.select(owner);
+		criteriaQuery.where(
+				criteriaBuilder.greaterThanOrEqualTo(
+						birthDateField,
+						Date.from(
+								LocalDate.parse("1980-01-01", DateTimeFormatter.ISO_LOCAL_DATE)
+										.atStartOfDay(ZoneId.systemDefault())
+										.toInstant())));
+
+		TypedQuery<Owner> query = em.createQuery(criteriaQuery);
+		System.out.printf("query: %s%n", query);
+//		TypedQuery<Owner> query = em.createQuery("select o from Owner o where o.birthDate > '1700-1-1'", Owner.class);
 
 		List<Owner> owners = query.getResultList();
 		System.out.printf("owners count: %d%n", owners.size());
@@ -827,7 +846,7 @@ public class AppTest {
 		tx.commit();
 		em.close();
 
-		tryToAddGarageToOwner(owner.getId());
+		tryToAddGarageToOwner(newOwner.getId());
 	}
 
 	public void tryToAddGarageToOwner(Integer ownerId) {
