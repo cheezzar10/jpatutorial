@@ -5,7 +5,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -710,7 +714,7 @@ public class AppTest {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 
-		Owner owner = new Owner("Billy", "Bones");
+		Owner owner = new Owner("Billy", "Bones", LocalDate.of(1950, 1, 1));
 		Integer[] carIds = { createCarWithEngine(em, "BMW", "M3", "BMW", "S55B30", 421),
 				createCarWithEngine(em, "BMW", "M5", "BMW", "S63B44T0", 560) };
 
@@ -808,12 +812,17 @@ public class AppTest {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 
-		Owner owner = new Owner("Blind", "Pew");
+		Owner owner = new Owner("Blind", "Pew", LocalDate.of(1753, 5, 5));
 		Garage garage = new Garage("Treasure Island", 1);
 		owner.getGarages().add(garage);
 
 		em.persist(owner);
 		em.persist(garage);
+
+		TypedQuery<Owner> query = em.createQuery("select o from Owner o where o.birthDate > '1700-1-1'", Owner.class);
+
+		List<Owner> owners = query.getResultList();
+		System.out.printf("owners count: %d%n", owners.size());
 
 		tx.commit();
 		em.close();
@@ -846,6 +855,18 @@ public class AppTest {
 
 		owner = em.find(Owner.class, ownerId);
 		owner.getGarages().add(garage);
+
+		tx.commit();
+		em.close();
+	}
+
+	@Test
+	public void testFindCarByNaturalId() {
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+
+
 
 		tx.commit();
 		em.close();

@@ -1,5 +1,7 @@
 package com.parallels.pa.rnd.jpa;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import javax.persistence.*;
 
@@ -16,6 +18,9 @@ public class Owner {
 	@Column(name = "last_name", length = 32)
 	private String lastName;
 
+	@Column(name = "birth_date")
+	private Date birthDate;
+
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
 	private Set<Car> cars = new HashSet<>();
 
@@ -27,9 +32,14 @@ public class Owner {
 
 	}
 
-	public Owner(String firstName, String lastName) {
+	public Owner(String firstName, String lastName, Date birthDate) {
 		this.firstName = firstName;
 		this.lastName = lastName;
+		this.birthDate = birthDate;
+	}
+
+	public Owner(String firstName, String lastName, LocalDate birthDate) {
+		this(firstName, lastName, Date.from(birthDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 	}
 
 	public Integer getId() {
@@ -50,6 +60,14 @@ public class Owner {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public Date getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(Date birthDate) {
+		this.birthDate = birthDate;
 	}
 
 	public Set<Car> getCars() {
