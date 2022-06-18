@@ -493,7 +493,7 @@ public class AppTest {
 		query.addSynchronizedQuerySpace("sql");
 		// Query query = em.createNativeQuery("insert into removed_car select
 		// id, maker from car where id = ?");
-		query.setParameter(0, 1);
+		query.setParameter(1, 1);
 		query.executeUpdate();
 
 		tx.commit();

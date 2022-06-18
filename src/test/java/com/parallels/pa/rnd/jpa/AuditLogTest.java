@@ -46,10 +46,10 @@ public class AuditLogTest {
 
             System.out.printf("user created: %s%n", user);
 
-            AuditLogRecord record = new AuditLogRecord("user created", user.getMemberId());
+            AuditLogRecord record = new AuditLogRecord("user created", user);
             em.persist(record);
 
-            AuditLogRecord loginRecord = new AuditLogRecord("user logged in", user.getMemberId());
+            AuditLogRecord loginRecord = new AuditLogRecord("user logged in", user);
             em.persist(loginRecord);
 
             AuditLogRecord systemRecord = new AuditLogRecord("catalog synchronized", null);
@@ -58,7 +58,7 @@ public class AuditLogTest {
 
         inTx(em -> {
             TypedQuery<Object[]> query = em.createQuery(
-                    "select r, ru from AuditLogRecord r left join r.user ru on ru.id = 1 where r.id < 10",
+                    "select r, ru from AuditLogRecord r left join r.user ru where r.id < 10 and ((ru.id = 1 and r.user is not null) or r.user is null)",
                     Object[].class);
 
             List<Object[]> rows = query.getResultList();

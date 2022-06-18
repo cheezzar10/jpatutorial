@@ -1,7 +1,5 @@
 package com.parallels.pa.rnd.jpa;
 
-import org.hibernate.annotations.JoinFormula;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,12 +8,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audit_log")
-public class AuditLogRecord {
+public class AuditLogRecord implements Serializable {
     @Id
     @GeneratedValue
     private Integer id;
@@ -26,24 +25,21 @@ public class AuditLogRecord {
     @Column(length = 256)
     private String message;
 
-    @Column(name = "user_id")
-    private Integer userId;
-
     @ManyToOne
-    @JoinFormula("(select u.id from users u where u.member_id = user_id)")
+    @JoinColumn(name = "user_id", referencedColumnName = "member_id")
     private User user;
 
     public AuditLogRecord() {
     }
 
-    public AuditLogRecord(String message, Integer userId) {
-        this(Timestamp.valueOf(LocalDateTime.now()), message, userId);
+    public AuditLogRecord(String message, User user) {
+        this(Timestamp.valueOf(LocalDateTime.now()), message, user);
     }
 
-    public AuditLogRecord(Timestamp timestamp, String message, Integer userId) {
+    public AuditLogRecord(Timestamp timestamp, String message, User user) {
         this.timestamp = timestamp;
         this.message = message;
-        this.userId = userId;
+        this.user = user;
     }
 
     public Integer getId() {
@@ -58,16 +54,12 @@ public class AuditLogRecord {
         this.message = message;
     }
 
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
     public User getUser() {
         return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
