@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "audit_log")
 public class AuditLogRecord implements Serializable {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "cached-sequence-generator")
     private Integer id;
 
     @Column(nullable = false)

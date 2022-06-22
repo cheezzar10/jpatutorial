@@ -26,6 +26,9 @@
 			
 			<!-- 2nd Level Cache stats collection -->
 			<property name="hibernate.generate_statistics" value="true"/>
+
+			<!-- batch size == AuditLogRecord sequence generator cache size -->
+			<property name="hibernate.jdbc.batch_size" value="100"/>
 		</properties>
 	</persistence-unit>
 </persistence>

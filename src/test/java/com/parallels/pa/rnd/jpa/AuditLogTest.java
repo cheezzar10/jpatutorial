@@ -1,5 +1,6 @@
 package com.parallels.pa.rnd.jpa;
 
+import org.hibernate.jpa.QueryHints;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,22 +26,36 @@ public class AuditLogTest {
         emf.close();
     }
 
-    private void inTx(Consumer<EntityManager> txAction) {
+    private void withJpa(boolean inTx, Consumer<EntityManager> action) {
         EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
+        try {
+            if (inTx) {
+                EntityTransaction tx = em.getTransaction();
+                tx.begin();
 
-        txAction.accept(em);
+                try {
+                    action.accept(em);
+                    tx.commit();
+                } catch (Exception ex) {
+                    tx.rollback();
+                }
+            } else {
+                action.accept(em);
+            }
+        } finally {
+            em.close();
+        }
+    }
 
-        tx.commit();
-        em.close();
+    private void withJpa(Consumer<EntityManager> txAction) {
+        withJpa(true, txAction);
     }
 
     @Test
     public void testAuditLogOperations() {
         System.out.println("audit log test started");
 
-        inTx(em -> {
+        withJpa(em -> {
             User user = new User(1001, "Billy Bones");
             em.persist(user);
 
@@ -56,7 +71,7 @@ public class AuditLogTest {
             em.persist(systemRecord);
         });
 
-        inTx(em -> {
+        withJpa(em -> {
             TypedQuery<Object[]> query = em.createQuery(
                     "select r, ru from AuditLogRecord r left join r.user ru where r.id < 10 and ((ru.id = 1 and r.user is not null) or r.user is null)",
                     Object[].class);
@@ -72,5 +87,42 @@ public class AuditLogTest {
 //            AuditLogRecord record = em.find(AuditLogRecord.class, 2);
 //            System.out.printf("record found: %s%n", record);
 //        });
+    }
+
+    @Test
+    public void testFetchAllAuditLogRecords() {
+        System.out.println("all records fetching started");
+
+        withJpa(em -> {
+            User user = new User(1002, "Blind Pew");
+            em.persist(user);
+
+            for (int recordNum=0;recordNum<10000;recordNum++) {
+                AuditLogRecord record = new AuditLogRecord("record #" + recordNum, user);
+                em.persist(record);
+
+                if  (recordNum != 0 && recordNum % 100 == 0) {
+                    em.flush();
+                    em.clear();
+                }
+            }
+        });
+
+        withJpa(false, em -> {
+            TypedQuery<AuditLogRecord> query = em.createQuery(
+                    "select r from AuditLogRecord r left join fetch r.user",
+                    AuditLogRecord.class);
+
+            query.setHint(QueryHints.HINT_FETCH_SIZE, "100");
+
+            query.getResultStream().forEach(record -> {
+                System.out.printf("record: %s%n", record);
+
+                // invalid record detection
+                // update AuditLogRecord set status = 'invalid' where id >= <current record> and node = <current node> and status = 'valid'
+            });
+        });
+
+        System.out.println("all records fetching completed");
     }
 }
