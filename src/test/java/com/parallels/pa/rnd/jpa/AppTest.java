@@ -54,7 +54,9 @@ public class AppTest {
 
 	@BeforeAll
 	public static void createEntityManagerFactory() {
-		emf = Persistence.createEntityManagerFactory("car");
+		emf = Persistence.createEntityManagerFactory(
+				"car",
+				Map.of("javax.persistence.jdbc.url", "jdbc:postgresql://docker/cardb"));
 	}
 
 	@AfterAll
