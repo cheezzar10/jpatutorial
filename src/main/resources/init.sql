@@ -1,0 +1,1 @@
+create table removed_car (id integer, maker varchar(32));

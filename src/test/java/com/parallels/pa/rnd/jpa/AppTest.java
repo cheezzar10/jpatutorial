@@ -46,9 +46,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 public class AppTest {
 	private static Logger log = LoggerFactory.getLogger(AppTest.class);
+
+	@Container
+	private static PostgreSQLContainer databaseContainer = (PostgreSQLContainer) new PostgreSQLContainer("postgres:11")
+			.withInitScript("init.sql");
 
 	private static EntityManagerFactory emf;
 
@@ -56,7 +64,13 @@ public class AppTest {
 	public static void createEntityManagerFactory() {
 		emf = Persistence.createEntityManagerFactory(
 				"car",
-				Map.of("javax.persistence.jdbc.url", "jdbc:postgresql://docker/cardb"));
+				Map.of(
+						"javax.persistence.jdbc.url",
+						databaseContainer.getJdbcUrl(),
+						"javax.persistence.jdbc.user",
+						databaseContainer.getUsername(),
+						"javax.persistence.jdbc.password",
+						databaseContainer.getPassword()));
 	}
 
 	@AfterAll
