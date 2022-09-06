@@ -1,6 +1,6 @@
 package com.parallels.pa.rnd.jpa;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,9 +41,9 @@ import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.exception.ConstraintViolationException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +52,12 @@ public class AppTest {
 
 	private static EntityManagerFactory emf;
 
-	@BeforeClass
+	@BeforeAll
 	public static void createEntityManagerFactory() {
 		emf = Persistence.createEntityManagerFactory("car");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void closeEntityManagerFactory() {
 		emf.close();
 	}
@@ -111,8 +111,8 @@ public class AppTest {
 		query.setParameter("model", "320d");
 
 		List<Object[]> result = query.getResultList();
-		assertEquals("Incorrect number of options", 1, result.size());
-		assertEquals("Incorrect option value", "aluminium", result.get(0)[1]);
+		assertEquals(1, result.size(), "Incorrect number of options");
+		assertEquals("aluminium", result.get(0)[1], "Incorrect option value");
 
 		tx.commit();
 		em.close();
@@ -276,7 +276,7 @@ public class AppTest {
 
 		List<Object[]> carsAndEngineIds = query.getResultList();
 
-		assertEquals("incorrect amount of used engines", carIds.length, carsAndEngineIds.size());
+		assertEquals(carIds.length, carsAndEngineIds.size(), "incorrect amount of used engines");
 		for (Object[] carAndEngineId : carsAndEngineIds) {
 			System.out.println("persisting already persisted car");
 			em.persist(carAndEngineId[0]);
@@ -650,8 +650,8 @@ public class AppTest {
 		TypedQuery<EngineProperty> query = em.createQuery(cq);
 		List<EngineProperty> result = query.getResultList();
 
-		assertEquals("Incorrect number of rows", 2, result.size());
-		assertEquals("Incorrect model", "N54", ((EngineProperty) result.get(0)).getEngine().getModel());
+		assertEquals(2, result.size(), "Incorrect number of rows");
+		assertEquals("N54", ((EngineProperty) result.get(0)).getEngine().getModel(), "Incorrect model");
 
 		tx.commit();
 		em.close();
@@ -681,8 +681,8 @@ public class AppTest {
 		query.setParameter("model", "N54");
 
 		List<EngineProperty> result = query.getResultList();
-		assertEquals("Incorrect number of properties", 1, result.size());
-		assertEquals("Incorrect property value", "aluminium with cast iron liners", result.get(0).getValue());
+		assertEquals(1, result.size(), "Incorrect number of properties");
+		assertEquals("aluminium with cast iron liners", result.get(0).getValue(), "Incorrect property value");
 
 		tx.commit();
 		em.close();

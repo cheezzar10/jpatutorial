@@ -1,10 +1,10 @@
 package com.parallels.pa.rnd.jpa;
 
 import org.hibernate.jpa.QueryHints;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -14,16 +14,16 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Ignore
+@Disabled("too slow")
 public class AuditLogTest {
     private static EntityManagerFactory emf;
 
-    @BeforeClass
+    @BeforeAll
     public static void createEntityManagerFactory() {
         emf = Persistence.createEntityManagerFactory("car");
     }
 
-    @AfterClass
+    @AfterAll
     public static void closeEntityManagerFactory() {
         emf.close();
     }
