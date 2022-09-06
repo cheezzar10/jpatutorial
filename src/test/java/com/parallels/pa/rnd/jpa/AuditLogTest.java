@@ -3,6 +3,7 @@ package com.parallels.pa.rnd.jpa;
 import org.hibernate.jpa.QueryHints;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
@@ -13,6 +14,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Ignore
 public class AuditLogTest {
     private static EntityManagerFactory emf;
 

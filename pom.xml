@@ -24,7 +24,7 @@
         		<artifactId>maven-surefire-plugin</artifactId>
         		<configuration>
 					<forkCount>0</forkCount>
-					<argLine>-Xmx16m -Xms16m</argLine>
+					<argLine>-Xmx64m -Xms16m</argLine>
           			<!-- <parallel>classes</parallel> -->
         		</configuration>
       		</plugin>

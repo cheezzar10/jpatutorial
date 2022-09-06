@@ -1,10 +1,8 @@
 package com.parallels.pa.rnd.jpa;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -18,6 +16,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.Cache;
 import javax.persistence.EntityManager;
@@ -39,6 +39,7 @@ import javax.persistence.criteria.Root;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -433,6 +434,7 @@ public class AppTest {
 
 		// fixing id to persist detached entity one more time
 		plant.setId(2);
+		System.out.println("persisting detached plant");
 		em.persist(plant);
 
 		tx.commit();
@@ -533,6 +535,13 @@ public class AppTest {
 			em.persist(changeRec);
 			enginePropsIter.remove();
 		}
+
+		Map<Serializable, Long> entitiesCount =
+				((Set<EntityKey>)em.unwrap(Session.class).getStatistics().getEntityKeys())
+						.stream()
+						.collect(Collectors.groupingBy(EntityKey::getEntityName, Collectors.counting()));
+
+		System.out.printf("entity stats: %s%n", entitiesCount);
 
 		tx.commit();
 		em.close();
@@ -793,16 +802,18 @@ public class AppTest {
 
 		Car car = em.find(Car.class, carId);
 
-		Query query = em.createQuery("delete Car c where c.owner = :owner");
-		query.setParameter("owner", owner);
-		query.executeUpdate();
+//		Query query = em.createQuery("delete Car c where c.owner = :owner");
+//		query.setParameter("owner", owner);
+//		query.executeUpdate();
 
 		em.clear();
 
 		assertFalse(em.contains(car));
 
-		car = em.find(Car.class, carId, LockModeType.PESSIMISTIC_WRITE);
-		assertNull(car);
+		Car reloadedCar = em.find(Car.class, carId);
+		assertNotNull(reloadedCar);
+
+		assertFalse(car == reloadedCar);
 
 		tx.commit();
 		em.close();
