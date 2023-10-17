@@ -45,6 +45,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.parallels.pa.rnd.jpa.interceptor.LoggingInterceptor;
 import com.parallels.pa.rnd.jpa.util.JPA;
 import com.parallels.pa.rnd.jpa.util.RND;
 
@@ -65,18 +66,20 @@ public class AppTest {
 		emf = Persistence.createEntityManagerFactory(
 				"car",
 				Map.of(
-						"javax.persistence.jdbc.url",
-						databaseContainer.getJdbcUrl(),
-						"javax.persistence.jdbc.user",
-						databaseContainer.getUsername(),
-						"javax.persistence.jdbc.password",
-						databaseContainer.getPassword()));
+						"javax.persistence.jdbc.url", databaseContainer.getJdbcUrl(), 
+						"javax.persistence.jdbc.user", databaseContainer.getUsername(), 
+						"javax.persistence.jdbc.password", databaseContainer.getPassword(), 
+						org.hibernate.cfg.AvailableSettings.SESSION_SCOPED_INTERCEPTOR, LoggingInterceptor.class.getName()));
 		
 		jpa = new JPA(emf);
 	}
 
 	@AfterAll
 	public static void closeEntityManagerFactory() {
+		for (var entry : LoggingInterceptor.entityCache.entrySet()) {
+			System.out.printf("entity cache entry: %s%n", entry);
+		}
+
 		emf.close();
 	}
 

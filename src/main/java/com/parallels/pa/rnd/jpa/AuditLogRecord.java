@@ -2,7 +2,6 @@ package com.parallels.pa.rnd.jpa;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -15,7 +14,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "audit_log")
 public class AuditLogRecord implements Serializable {
-    @Id
+    private static final long serialVersionUID = 1542302964466463496L;
+
+	@Id
     @GeneratedValue(generator = "cached-sequence-generator")
     private Integer id;
 

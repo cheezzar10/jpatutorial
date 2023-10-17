@@ -1,6 +1,5 @@
 package com.parallels.pa.rnd.jpa;
 
-import java.util.*;
 import javax.persistence.*;
 
 @Entity
