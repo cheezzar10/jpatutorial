@@ -772,9 +772,10 @@ public class AppTest {
 
 	@Test
 	public void testCreateOwnerWithGarages() {
+		final var garageAddress = "Treasure Island";
 		var createdOwner = jpa.withEm(em -> {
 			Owner newOwner = new Owner("Blind", "Pew", LocalDate.of(1753, 5, 5));
-			Garage garage = new Garage("Treasure Island", 1);
+			Garage garage = new Garage(garageAddress, 1);
 			newOwner.getGarages().add(garage);
 
 			em.persist(newOwner);
@@ -806,6 +807,21 @@ public class AppTest {
 		});
 
 		tryToAddGarageToOwner(createdOwner.getId());
+		
+		jpa.withEmVoid(em -> {
+			var session = em.unwrap(Session.class);
+			log.debug("loading garage by address: {}", garageAddress);
+			var loadedGarage = session
+					.bySimpleNaturalId(Garage.class)
+					.load(garageAddress);
+			log.debug("garage loaded by address: {}", loadedGarage);
+			
+			log.debug("garage by address loading 2nd attempt");
+			loadedGarage = session
+					.bySimpleNaturalId(Garage.class)
+					.load(garageAddress);
+			log.debug("garage loaded by address 2nd time: {}", loadedGarage);
+		});
 	}
 
 	private void tryToAddGarageToOwner(Integer ownerId) {

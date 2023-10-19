@@ -2,6 +2,8 @@ package com.parallels.pa.rnd.jpa;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.NaturalId;
+
 @Entity
 @Table(name = "garage")
 public class Garage {
@@ -10,6 +12,7 @@ public class Garage {
 	private Integer id;
 
 	@Column(name = "address", length = 64)
+	@NaturalId
 	private String address;
 
 	@Column(name = "capacity")
@@ -42,5 +45,10 @@ public class Garage {
 
 	public void setCapacity(int capacity) {
 		this.capacity = capacity;
+	}
+
+	@Override
+	public String toString() {
+		return "Garage: { id=" + id + ", address='" + address + "', capacity='" + capacity + "' }";
 	}
 }
