@@ -38,9 +38,12 @@ import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.jpa.QueryHints;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -51,6 +54,8 @@ import com.parallels.pa.rnd.jpa.util.RND;
 
 @Testcontainers
 public class AppTest {
+	private static final Logger log = LoggerFactory.getLogger(AppTest.class);
+
 	@Container
 	private static PostgreSQLContainer databaseContainer = (PostgreSQLContainer) new PostgreSQLContainer("postgres:11")
 			.withInitScript("init.sql");
@@ -131,8 +136,8 @@ public class AppTest {
 
 //		testRemoveEngine();
 		testCarArchival();
-		testLoadCars(new Integer[] { newCar.getId() });
-		testLoadCars(new Integer[] { 2 } );
+		testLoadCars(newCar.getId());
+		testLoadCars(2);
 		testLoadCarUsingNativeQuery(newCar.getId());
 		testCarRemovalAndCreationUsingAssignedId(newCar.getId());
 		testAdHocNativeQueries();
@@ -232,7 +237,7 @@ public class AppTest {
 		});
 	}
 
-	private void testLoadCars(Integer[] carIds) {
+	private void testLoadCars(Integer... carIds) {
 		jpa.withEmVoid(em -> {
 			Cache cache = em.getEntityManagerFactory().getCache();
 			Integer carId = carIds[0];
@@ -252,7 +257,7 @@ public class AppTest {
 			Join<Car, Engine> engine = car.join("engine");
 			// cq.select(car.<Engine>get("engine").<Integer>get("id"));
 			cq.multiselect(car, engine.get("id"));
-			cq.where(car.get("id").in(carIds));
+			cq.where(car.get("id").in((Object[])carIds));
 			TypedQuery<Object[]> query = em.createQuery(cq);
 
 			List<Object[]> carsAndEngineIds = query.getResultList();
@@ -264,6 +269,13 @@ public class AppTest {
 				System.out.printf("engine id: %d%n", carAndEngineId[1]);
 				// ((Car)carAndEngineId[0]).getModel();
 			}
+			
+			var loadedCarEngine = loadedCar.getEngine();
+			em.detach(loadedCar);
+			
+			assertFalse(em.contains(loadedCar));
+			// Cascade should be set to ALL or contain DETACH, after that the following assertion will pass
+			assertTrue(em.contains(loadedCarEngine));
 		});
 	}
 
@@ -696,21 +708,28 @@ public class AppTest {
 
 	private void tryToLoadOwner(Integer ownerId, Integer carId) {
 		jpa.withEmVoid(em -> {
-			TypedQuery<Owner> query = em.createQuery("select o from Owner o join o.cars c where o.id = :id", Owner.class);
+			log.debug("using query distinct");
+
+			TypedQuery<Owner> query = em.createQuery(
+					"select distinct o from Owner o left join fetch o.cars c where o.id = :id", 
+					Owner.class);
+
 			query.setParameter("id", ownerId);
+			// this hint doesn't work for non-fetch joins
+			query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, "false");
 			// query.setHint("org.hibernate.readOnly", Boolean.TRUE.toString());
-			Owner owner = query.getSingleResult();
 
 			int rowsCount = 0;
 			for (Owner row : query.getResultList()) {
 				assertEquals(2, row.getCars().size());
 				rowsCount++;
 			}
-			assertEquals(2, rowsCount);
+			assertEquals(1, rowsCount);
 			assertEquals(1, new LinkedHashSet<>(query.getResultList()).size());
 
 			Car car = em.find(Car.class, carId);
 
+			Owner owner = query.getSingleResult();
 			car.setOwner(owner);
 			owner.getCars().add(car);
 		});

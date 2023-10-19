@@ -81,4 +81,9 @@ public class Owner {
 	public void setGarages(Set<Garage> garages) {
 		this.garages = garages;
 	}
+	
+	@Override
+	public String toString() { 
+		return "Owner: { id=" + id + ", firstName='" + firstName + "', lastName='" + lastName + "' }"; 
+	}
 }
