@@ -1,5 +1,7 @@
 package com.parallels.pa.rnd.jpa;
 
+import org.hibernate.annotations.NaturalId;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -11,6 +13,11 @@ public class Owner {
 	@Id
 	@GeneratedValue
 	private Integer id;
+
+	@NaturalId
+	@org.hibernate.annotations.Type(type = "com.parallels.pa.rnd.jpa.type.StringUuidType")
+	@Column(columnDefinition = "uuid")
+	private String uid;
 
 	@Column(name = "first_name", length = 32)
 	private String firstName;
@@ -33,6 +40,7 @@ public class Owner {
 	}
 
 	public Owner(String firstName, String lastName, Date birthDate) {
+		this.uid = UUID.randomUUID().toString();
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.birthDate = birthDate;
@@ -44,6 +52,14 @@ public class Owner {
 
 	public Integer getId() {
 		return id;
+	}
+
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 
 	public String getFirstName() {

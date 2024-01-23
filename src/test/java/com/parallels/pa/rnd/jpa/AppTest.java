@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.Cache;
@@ -674,6 +675,13 @@ public class AppTest {
 			em.flush();
 
 			Car car = em.find(Car.class, carIds[1]);
+
+			var session = em.unwrap(Session.class);
+			var savedOwner = session
+					.bySimpleNaturalId(Owner.class)
+					.load(owner.getUid());
+
+			System.out.printf("found owner: %s%n", savedOwner);
 			
 			return new Result(carIds, owner, carId);
 		});
